@@ -41,14 +41,17 @@ struct session{
 	struct  in_addr dst_ip;
 	u_short src_port;
 	u_short dst_port;
-        
+   /*     
 	void operator = (session const & ob2) {  
            src_ip = ob2.src_ip;
            dst_ip = ob2.dst_ip;
            src_port = ob2.src_port;
            dst_port = ob2.dst_port;
         }
-
+*/
+    bool operator<(session const & ob1) {
+    	return ( ob1.src_port < dst_port );  
+    }
 };
 
 struct pac_payload{
@@ -144,7 +147,7 @@ print_payload(const u_char *payload, int len);
 void
 print_hex_ascii_line(const u_char *payload, int len, int offset);
 
-map<struct session, vector<struct pac_payload> > Map();
+map<session, vector<pac_payload> > Map;
 
 /*
  * print data in rows of 16 bytes: offset   hex   ascii
@@ -322,6 +325,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 		
 			value.value = payload;
 			value.len = size_payload;
+			
 			Map[ses].push_back(value);
 
 			
