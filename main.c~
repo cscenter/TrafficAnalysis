@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
         PrintVector(p.v[i]);
     }
 
-    StatisticAnalysis * statAnalysis = new StatisticAnalysis(p);
+    //StatisticAnalysis * statAnalysis = new StatisticAnalysis(p);
     printf("\nCapture complete.\n");
 
 	return 0;
