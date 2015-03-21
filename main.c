@@ -14,8 +14,9 @@
 #include <map>
 
 //#include "class_sniff.h"
-#include "class_sniff.c"
+#include "class_sniff.h"
 #include "StatisticAnalysis.h"
+
 
 #define SNAP_LEN 1518
 #define SIZE_ETHERNET 14
@@ -73,7 +74,7 @@ void PrintVector(SplitPacket &s_pack) {
 
 int main(int argc, char **argv) {
 	char protocol[] = "ip";
-    allPackets p;
+    	allPackets p;
 	if (argc == 2) {
 			NetSniffer *obj = new NetSniffer(argv[1], protocol, 10);
 			p = obj->StartSniff();
@@ -84,17 +85,17 @@ int main(int argc, char **argv) {
 			}
 	else {
 		NetSniffer *obj = new NetSniffer();
-        p = obj->StartSniff();
+        	p = obj->StartSniff();
 	}
 
 	//cout << "size of vector: " << p.v.size() << endl;
-    int i;
-    for (i = 0; i < p.v.size(); i++) {
-        PrintVector(p.v[i]);
-    }
+        int i;
+        for (i = 0; i < p.v.size(); i++) {
+            PrintVector(p.v[i]);
+        }
 
-    StatisticAnalysis * statAnalysis = new StatisticAnalysis(p);
-    printf("\nCapture complete.\n");
+        StatisticAnalysis * statAnalysis = new StatisticAnalysis(p);
+        printf("\nCapture complete.\n");
 
 	return 0;
 };
