@@ -13,8 +13,7 @@
 #include <arpa/inet.h>
 #include <map>
 
-//#include "class_sniff.h"
-#include "class_sniff.c"
+#include "class_sniff.h"
 #include "StatisticAnalysis.h"
 
 #define SNAP_LEN 1518
