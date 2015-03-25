@@ -104,7 +104,7 @@ public:
 
 	ParsePacket();
 
-	void Parse(SplitPacket *s_pack, const struct pcap_pkthdr *head, const u_char *packet);
+	SplitPacket Parse(const struct pcap_pkthdr *head, const u_char *packet);
 };
 
 
@@ -130,6 +130,55 @@ struct Session {
 
 struct allPackets {
      vector<SplitPacket> v;
+
+     void PrintVector() {
+        int i;
+        SplitPacket s_pack;
+        for (i = 0; i < v.size(); i++) {
+            s_pack = v[i];
+            cout << i << endl << endl;
+            printf("From: %s\n", inet_ntoa(s_pack.ip->ip_src));
+            printf("To: %s\n", inet_ntoa(s_pack.ip->ip_dst));
+
+            switch(s_pack.ip->ip_p) {
+                case IPPROTO_TCP:
+                    printf("Protocol: TCP\n");
+                    if (s_pack.size_tcp < 20) {
+                        printf("Invalid TCP header length: %u bytes\n", s_pack.size_tcp);
+                    }
+                    printf("Src port: %d\n", ntohs(s_pack.tcp->th_sport));
+                    printf("Dst port: %d\n", ntohs(s_pack.tcp->th_dport));
+
+                    if (s_pack.size_payload > 0) {
+                        printf("Payload (%d bytes):\n\n\n", s_pack.size_payload);
+                    }
+                    else {
+                    cout << endl << endl;
+                    }
+
+                    break;
+                case IPPROTO_UDP:
+                    printf("Protocol: UDP\n");
+                    s_pack.size_udp = UDP_length;
+
+                    if (s_pack.size_udp < 8) {
+                        printf("Invalid UDP header length: %u bytes\n", s_pack.size_udp);
+                    }
+
+                    printf("Src port: %d\n", ntohs(s_pack.udp->s_port));
+                    printf("Dst port: %d\n", ntohs(s_pack.udp->d_port));
+
+                    if (s_pack.size_payload > 0) {
+                        printf("Payload (%d bytes):\n\n\n", s_pack.size_payload);
+                        //print_payload(payload, size_payload);
+                    }
+
+                    break;
+                default:
+                    printf("Protocol: %c\n\n\n", s_pack.ip->ip_p );
+            }
+	    }
+    }
 };
 
 class NetSniffer {
@@ -153,11 +202,11 @@ public:
 
 	static void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
 		allPackets * pack = (allPackets *) args;
-		SplitPacket * value = new SplitPacket();
+		SplitPacket value;
 		ParsePacket *obj = new ParsePacket();
-		obj->Parse(value, header, packet);
-		if (value->flag) {
-            pack -> v.push_back(*value);
+		value = obj->Parse(header, packet);
+		if (value.flag) {
+            pack -> v.push_back(value);
         }
 	}
 };

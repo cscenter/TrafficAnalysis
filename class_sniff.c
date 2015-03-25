@@ -29,49 +29,51 @@ using namespace std;
 ParsePacket::ParsePacket() {
 };
 
-void ParsePacket::Parse(SplitPacket *s_pack, const struct pcap_pkthdr *head, const u_char *packet) {
-	s_pack->header = head;
-	s_pack->ethernet = (struct sniff_ethernet*)(packet);
-	s_pack->ip = (struct sniff_ip*)(packet + SIZE_ETHERNET);
-	s_pack->size_ip = IP_HL(ip)*4;
+SplitPacket ParsePacket::Parse(const struct pcap_pkthdr *head, const u_char *packet) {
+	SplitPacket s_pack;
 
-	if (s_pack->size_ip < 20) {
-        s_pack->flag = false;
-		return;
+	s_pack.header = head;
+	s_pack.ethernet = (struct sniff_ethernet* )packet;
+	s_pack.ip = (struct sniff_ip*)(packet + SIZE_ETHERNET);
+	s_pack.size_ip = (((s_pack.ip)->ip_vhl) & 0x0f)*4;
+
+	if (s_pack.size_ip < 20) {
+        s_pack.flag = false;
+		return s_pack;
 	}
 
-	switch(s_pack->ip->ip_p) {
+	switch(s_pack.ip->ip_p) {
 		case IPPROTO_TCP:
-			s_pack->flag = true;
-			s_pack->tcp = (struct sniff_tcp*)(packet + SIZE_ETHERNET + s_pack->size_ip);
-			s_pack->size_tcp = TH_OFF(tcp) * 4;
+			s_pack.flag = true;
+			s_pack.tcp = (struct sniff_tcp*)(packet + SIZE_ETHERNET + s_pack.size_ip);
+			s_pack.size_tcp = (((s_pack.tcp)->th_offx2 & 0xf0) >> 4) * 4;
 
-			if (s_pack->size_tcp < 20) {
-                s_pack->flag = false;
-				return;
+			if (s_pack.size_tcp < 20) {
+                s_pack.flag = false;
+				return s_pack;
 			}
 
-			s_pack->payload = (u_char *)(packet + SIZE_ETHERNET + s_pack->size_ip + s_pack->size_tcp);
-			s_pack->size_payload = ntohs(s_pack->ip->ip_len) - (s_pack->size_ip + s_pack->size_tcp);
+			s_pack.payload = (u_char *)(packet + SIZE_ETHERNET + s_pack.size_ip + s_pack.size_tcp);
+			s_pack.size_payload = ntohs(s_pack.ip->ip_len) - (s_pack.size_ip + s_pack.size_tcp);
 			break;
 		case IPPROTO_UDP:
-			s_pack->flag = true;
-			s_pack->udp = (struct sniff_udp*)(packet + SIZE_ETHERNET + s_pack->size_ip); //как-то нужно ведь смотреть длину заголовка...
-			s_pack->size_udp = UDP_length;
+			s_pack.flag = true;
+			s_pack.udp = (struct sniff_udp*)(packet + SIZE_ETHERNET + s_pack.size_ip); //как-то нужно ведь смотреть длину заголовка
+			s_pack.size_udp = UDP_length;
 
-			if (s_pack->size_udp < 8) {
-                s_pack->flag = false;
-				return;
+			if (s_pack.size_udp < 8) {
+                s_pack.flag = false;
+				return s_pack;
 			}
 
-			s_pack->payload = (u_char *)(packet + SIZE_ETHERNET + s_pack->size_ip + s_pack->size_udp);
-			s_pack->size_payload = ntohs(s_pack->ip->ip_len) - (s_pack->size_ip + s_pack->size_udp);
+			s_pack.payload = (u_char *)(packet + SIZE_ETHERNET + s_pack.size_ip + s_pack.size_udp);
+			s_pack.size_payload = ntohs(s_pack.ip->ip_len) - (s_pack.size_ip + s_pack.size_udp);
 			break;
 		default:
-			s_pack->flag = false;
-			return;
+			s_pack.flag = false;
+			return s_pack;
 	}
-	return;
+	return s_pack;
 };
 
 
@@ -82,9 +84,7 @@ NetSniffer::NetSniffer() {
 	num_packets = 100;
 };
 
-int NetSniffer::get() {
-return 1111;
-}
+
 
 NetSniffer::NetSniffer(char *device, char *protocol, int n) {
 	dev = (char *) malloc((sizeof(device)));
@@ -119,7 +119,7 @@ allPackets NetSniffer::StartSniff(){
 
 	// open capture device
 	handle = pcap_open_live(dev, SNAP_LEN, 1, 1000, errbuf);
-	//handle = pcap_open_offline(dev, errbuf);	
+	//handle = pcap_open_offline(dev, errbuf);
 	if (handle == NULL) {
 		fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
 		exit(EXIT_FAILURE);
@@ -151,7 +151,7 @@ allPackets NetSniffer::StartSniff(){
 	pcap_loop(handle, num_packets, got_packet, (u_char *)(&p));
 
 	pcap_freecode(&fp);
-    //pcap_close(handle); ???
+    //pcap_close(handle);
     return p;
 };
 
