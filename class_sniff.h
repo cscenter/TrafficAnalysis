@@ -108,6 +108,7 @@ public:
 };
 
 
+
 struct Session {
     struct  in_addr ip_src;
     struct  in_addr ip_dst;
@@ -117,12 +118,12 @@ struct Session {
     //time?
 
     bool operator < (const Session & b) const {
-        return !(( inet_ntoa(ip_src) == inet_ntoa(b.ip_src) && inet_ntoa(ip_dst) == inet_ntoa(b.ip_dst)
-                && ntohs(port_src) == ntohs(b.port_src) && ntohs(port_dst) == ntohs(b.port_dst) )
-                || ( inet_ntoa(ip_src) == inet_ntoa(b.ip_dst) && inet_ntoa(ip_dst) == inet_ntoa(b.ip_src)
-                && ntohs(port_src) == ntohs(b.port_dst) && ntohs(port_dst) == ntohs(b.port_src) ));
-        //return inet_ntoa(this->ip_src) < inet_ntoa(b.ip_src);
-    }
+        if (ip_src.s_addr != b.ip_src.s_addr) return ip_src.s_addr < b.ip_src.s_addr;
+	if (ip_dst.s_addr != b.ip_dst.s_addr) return ip_dst.s_addr < b.ip_dst.s_addr;
+	if (port_src != b.port_src) return port_src < b.port_src;
+	if (port_dst != b.port_dst) return port_dst < b.port_dst;
+	return protocol < b.protocol;
+	}
 };
 
 
