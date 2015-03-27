@@ -84,11 +84,11 @@ struct sniff_tcp {
 
 
 struct SplitPacket {
-	const struct pcap_pkthdr *header;
-	struct sniff_ethernet *ethernet;
-	struct sniff_ip *ip;
-	struct sniff_tcp *tcp;
-	struct sniff_udp *udp;
+	struct pcap_pkthdr header;
+	struct sniff_ethernet ethernet;
+	struct sniff_ip ip;
+	struct sniff_tcp tcp;
+	struct sniff_udp udp;
 	u_char *payload;
 	int size_ip;
 	int size_tcp;
@@ -135,19 +135,20 @@ struct allPackets {
         int i;
         SplitPacket s_pack;
         for (i = 0; i < v.size(); i++) {
+            //cout <<  i << "  " << v[0].size_ip << "  " <<  inet_ntoa(v[0].ip.ip_src) << endl;
             s_pack = v[i];
-            cout << i << endl << endl;
-            printf("From: %s\n", inet_ntoa(s_pack.ip->ip_src));
-            printf("To: %s\n", inet_ntoa(s_pack.ip->ip_dst));
+            //cout << i << endl << endl;
+            printf("From: %s\n", inet_ntoa(s_pack.ip.ip_src));
+            printf("To: %s\n", inet_ntoa(s_pack.ip.ip_dst));
 
-            switch(s_pack.ip->ip_p) {
+            switch(s_pack.ip.ip_p) {
                 case IPPROTO_TCP:
                     printf("Protocol: TCP\n");
                     if (s_pack.size_tcp < 20) {
                         printf("Invalid TCP header length: %u bytes\n", s_pack.size_tcp);
                     }
-                    printf("Src port: %d\n", ntohs(s_pack.tcp->th_sport));
-                    printf("Dst port: %d\n", ntohs(s_pack.tcp->th_dport));
+                    printf("Src port: %d\n", ntohs(s_pack.tcp.th_sport));
+                    printf("Dst port: %d\n", ntohs(s_pack.tcp.th_dport));
 
                     if (s_pack.size_payload > 0) {
                         printf("Payload (%d bytes):\n\n\n", s_pack.size_payload);
@@ -165,8 +166,8 @@ struct allPackets {
                         printf("Invalid UDP header length: %u bytes\n", s_pack.size_udp);
                     }
 
-                    printf("Src port: %d\n", ntohs(s_pack.udp->s_port));
-                    printf("Dst port: %d\n", ntohs(s_pack.udp->d_port));
+                    printf("Src port: %d\n", ntohs(s_pack.udp.s_port));
+                    printf("Dst port: %d\n", ntohs(s_pack.udp.d_port));
 
                     if (s_pack.size_payload > 0) {
                         printf("Payload (%d bytes):\n\n\n", s_pack.size_payload);
@@ -175,7 +176,7 @@ struct allPackets {
 
                     break;
                 default:
-                    printf("Protocol: %c\n\n\n", s_pack.ip->ip_p );
+                    printf("Protocol: %c\n\n\n", s_pack.ip.ip_p );
             }
 	    }
     }
