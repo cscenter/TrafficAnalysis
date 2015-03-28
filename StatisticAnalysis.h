@@ -19,17 +19,28 @@
 
 #include "class_sniff.h"
 
-struct Packages
-{
-    struct sniff_ip *ip;
+struct Packages {
+    struct sniff_ip ip;
     vector<int> uplink;
     vector<int> downlink;
+    int up_init_sec;
+    int up_prev_sec;
+    int down_init_sec;
+    int down_prev_sec;
+    Packages() {
+        up_init_sec = 0;
+        up_prev_sec = -1;
+        down_init_sec = 0;
+        down_prev_sec = -1;
+    }
 };
 
-class StatisticAnalysis
-{
+class StatisticAnalysis {
     map<Session, Packages> PackagesTime;
 public:
     StatisticAnalysis(allPackets p);
+    void print_map();
+    void write_map();
 };
+
 
