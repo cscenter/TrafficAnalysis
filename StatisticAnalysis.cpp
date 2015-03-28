@@ -23,7 +23,7 @@ using namespace std;
 
 StatisticAnalysis::StatisticAnalysis(allPackets p) {   //FILL MAP
         int i;
-	cout << " !" << endl<<endl<<endl<<endl;	
+//	cout << " !" << endl<<endl<<endl<<endl;	
         for (i = 0; i < p.v.size(); i++) {
             Session temp_ses, temp_ses2;
             temp_ses.ip_src = p.v[i].ip.ip_src;
@@ -67,7 +67,7 @@ StatisticAnalysis::StatisticAnalysis(allPackets p) {   //FILL MAP
             }
             else if (it2 != PackagesTime.end()) {
                 if (it2->second.up_init_sec == 0) it2->second.up_init_sec = p.v[i].header.ts.tv_sec;
-		cout << "c ! "<< p.v[i].header.ts.tv_sec << " " << it2->second.down_prev_sec << endl;	
+		//cout << "c ! "<< p.v[i].header.ts.tv_sec << " " << it2->second.down_prev_sec << endl;	
                 if (p.v[i].header.ts.tv_sec > it2->second.down_prev_sec + 1 && it2->second.down_prev_sec != -1 ) {
                     int j;
 	            //cout << p.v[i].size_ip;// << " " << it2->second.down_prev_sec << endl;			
