@@ -22,15 +22,40 @@ PackData::PackData() {
 }
 
 void PackData::FormPackDate(Session session, SplitPacket pack) {
-    //const char *s = pack.payload;
-    //string payload = new string(s);
     src = session.ip_src;     // бред, надо перепроверить
-    if (inet_ntoa(src) == inet_ntoa(pack.ip->ip_src)) {
-        UpLoad.push_back(pack.payload);
+    u_char *value = (u_char *)malloc(pack.size_payload * sizeof(u_char));
+    memmove(value, pack.payload, pack.size_payload);
+
+    if (src.s_addr == pack.ip.ip_src.s_addr) {
+        UpLoad.push_back(value);
     }
     else {
-        DownLoad.push_back(pack.payload);
+        DownLoad.push_back(value);
     }
+}
+
+int PackData::CheckDate( char *expr) {
+    int count = 0;
+    int i;
+    //const char *exp = (char *)expr;
+    for (i = 0; i < UpLoad.size(); i++) {
+        const char *payload = (char *)UpLoad[i];
+        if ( !strstr(payload, expr) ) {
+            count++;
+        }
+        payload = NULL;
+    }
+    for (i = 0; i < DownLoad.size(); i++) {
+        const char *payload = (char *)DownLoad[i];
+        if ( !strstr(payload, expr) ) {
+            count++;
+        }
+        payload = NULL;
+    }
+    if (count) {
+        return count;
+    }
+    return 0;
 }
 
 
@@ -41,7 +66,17 @@ void SignatureAnalisator::PrintMap() {
     map<Session, PackData>::iterator iter;
     iter = Map.begin();
     while(iter != Map.end()) {
-        cout << inet_ntoa(iter->first.ip_src) << "   " << endl;
+        Session session = iter->first;
+        session.PrintSession();
+        PackData p_date = iter->second;
+        char expr[] = "HTTP/1.1";
+        int answer = p_date.CheckDate(expr);
+        if (answer) {
+            cout << expr << "    " << "OK!!!" << "  " << answer << "  " << endl << endl;
+        }
+        else {
+            cout << expr << "    " << "NONE!!!" << endl << endl;
+        }
         iter++;
     }
 }
@@ -56,18 +91,21 @@ void SignatureAnalisator::FormMap(vector<SplitPacket> Packets) {
 
 Session SignatureAnalisator::GetSession(SplitPacket pack) {
     Session session;
-    session.ip_src = pack.ip->ip_src;
-    session.ip_dst = pack.ip->ip_dst;
-    session.protocol = pack.ip->ip_p;
-    switch(pack.ip->ip_p) {
+    session.ip_src = pack.ip.ip_src;
+    session.ip_dst = pack.ip.ip_dst;
+    session.protocol = pack.ip.ip_p;
+    switch(pack.ip.ip_p) {
         case IPPROTO_TCP:
-            session.port_src = pack.tcp->th_sport;
-            session.port_dst = pack.tcp->th_dport;
+            session.port_src = pack.tcp.th_sport;
+            session.port_dst = pack.tcp.th_dport;
+            session.prot = "TCP";
             break;
         case IPPROTO_UDP:
-            session.port_src = pack.udp->s_port;
-            session.port_dst = pack.udp->d_port;
+            session.port_src = pack.udp.s_port;
+            session.port_dst = pack.udp.d_port;
+            session.prot = "UDP";
             break;
     }
+    return session;
 }
 
