@@ -1,0 +1,70 @@
+#include <pcap.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <iostream>
+#include <new>
+
+#include <ctype.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <map>
+#include <vector>
+#include <string>
+#include <time.h>
+
+#include "StatisticAnalysis.h"
+
+
+StatisticAnalysis::StatisticAnalysis(allPackets p) {   //FILL MAP
+
+	int i;
+        for (i = 0; i < p.v.size(); i++) {
+		Session temp_ses, temp_ses2;
+		temp_ses.ip_src = p.v[i].ip.ip_src;
+		temp_ses.ip_dst = p.v[i].ip.ip_dst;
+		temp_ses.protocol = p.v[i].ip.ip_p;
+		temp_ses2.ip_src = p.v[i].ip.ip_dst;
+		temp_ses2.ip_dst = p.v[i].ip.ip_src;
+		temp_ses2.protocol = p.v[i].ip.ip_p;
+		switch(p.v[i].ip.ip_p) {
+			case IPPROTO_TCP:
+				temp_ses.port_src = p.v[i].tcp.th_sport;
+				temp_ses.port_dst = p.v[i].tcp.th_dport;
+				temp_ses2.port_src = p.v[i].tcp.th_dport;
+				temp_ses2.port_dst = p.v[i].tcp.th_sport;
+				break;
+			case IPPROTO_UDP:
+				temp_ses.port_src = p.v[i].udp.s_port;
+				temp_ses.port_dst = p.v[i].udp.d_port;
+				temp_ses2.port_src = p.v[i].udp.d_port;
+				temp_ses2.port_dst = p.v[i].udp.s_port;
+				break;
+		}
+		map<Session, Packages>::iterator it = PackagesTime.find(temp_ses);
+		map<Session, Packages>::iterator it2 = PackagesTime.find(temp_ses2);
+		if (it != PackagesTime.end()) {		
+			it->second.uplink.push_back(p.v[i].header.ts.tv_sec);	
+		}
+		else if (it2 != PackagesTime.end()) {	
+			it2->second.downlink.push_back(p.v[i].header.ts.tv_sec);		
+		}
+		else {		
+			PackagesTime[temp_ses].ip = p.v[i].ip;
+			PackagesTime[temp_ses].uplink.push_back(p.v[i].header.ts.tv_sec);
+		}
+	}
+	map<Session, Packages>::iterator it;
+	for(it = PackagesTime.begin(); it != PackagesTime.end(); it++) {
+		cout << inet_ntoa(it->first.ip_src) << endl;
+		cout << it->second.uplink.size() << " " << it->second.uplink[0] <<   endl;
+		cout << it->second.downlink.size() << endl;
+	}
+
+
+	cout << "MAP SIZE " << PackagesTime.size();
+}
+

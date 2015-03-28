@@ -31,43 +31,40 @@ ParsePacket::ParsePacket() {
 
 SplitPacket ParsePacket::Parse(const struct pcap_pkthdr *head, const u_char *packet) {
 	SplitPacket s_pack;
-
-	s_pack.header = head;
-	s_pack.ethernet = (struct sniff_ethernet* )packet;
-	s_pack.ip = (struct sniff_ip*)(packet + SIZE_ETHERNET);
-	s_pack.size_ip = (((s_pack.ip)->ip_vhl) & 0x0f)*4;
-
+	s_pack.header = *head;
+	s_pack.ethernet = *(sniff_ethernet*)packet;
+	s_pack.ip = *(sniff_ip *)(packet + SIZE_ETHERNET);
+	s_pack.size_ip = (((s_pack.ip).ip_vhl) & 0x0f)*4;
 	if (s_pack.size_ip < 20) {
         s_pack.flag = false;
 		return s_pack;
 	}
-
-	switch(s_pack.ip->ip_p) {
+	switch(s_pack.ip.ip_p) {
 		case IPPROTO_TCP:
 			s_pack.flag = true;
-			s_pack.tcp = (struct sniff_tcp*)(packet + SIZE_ETHERNET + s_pack.size_ip);
-			s_pack.size_tcp = (((s_pack.tcp)->th_offx2 & 0xf0) >> 4) * 4;
+			s_pack.tcp = *(struct sniff_tcp*)(packet + SIZE_ETHERNET + s_pack.size_ip);
+			s_pack.size_tcp = (((s_pack.tcp).th_offx2 & 0xf0) >> 4) * 4;
 
 			if (s_pack.size_tcp < 20) {
                 s_pack.flag = false;
 				return s_pack;
 			}
-
-			s_pack.payload = (u_char *)(packet + SIZE_ETHERNET + s_pack.size_ip + s_pack.size_tcp);
-			s_pack.size_payload = ntohs(s_pack.ip->ip_len) - (s_pack.size_ip + s_pack.size_tcp);
+			s_pack.size_payload = ntohs(s_pack.ip.ip_len) - (s_pack.size_ip + s_pack.size_tcp);
+			s_pack.payload = (u_char *) malloc(s_pack.size_payload * sizeof(u_char));
+			memmove(s_pack.payload, ( (u_char *)(packet + SIZE_ETHERNET + s_pack.size_ip + s_pack.size_tcp) ), s_pack.size_payload);
 			break;
 		case IPPROTO_UDP:
 			s_pack.flag = true;
-			s_pack.udp = (struct sniff_udp*)(packet + SIZE_ETHERNET + s_pack.size_ip); //как-то нужно ведь смотреть длину заголовка
+			s_pack.udp = *(struct sniff_udp*)(packet + SIZE_ETHERNET + s_pack.size_ip); //как-то нужно ведь смотреть длину заголовка
 			s_pack.size_udp = UDP_length;
 
 			if (s_pack.size_udp < 8) {
                 s_pack.flag = false;
 				return s_pack;
 			}
-
-			s_pack.payload = (u_char *)(packet + SIZE_ETHERNET + s_pack.size_ip + s_pack.size_udp);
-			s_pack.size_payload = ntohs(s_pack.ip->ip_len) - (s_pack.size_ip + s_pack.size_udp);
+            s_pack.size_payload = ntohs(s_pack.ip.ip_len) - (s_pack.size_ip + s_pack.size_udp);
+            s_pack.payload = (u_char *) malloc(s_pack.size_payload * sizeof(u_char));
+			memmove(s_pack.payload,(u_char *)(packet + SIZE_ETHERNET + s_pack.size_ip + s_pack.size_udp), s_pack.size_payload);
 			break;
 		default:
 			s_pack.flag = false;
@@ -146,14 +143,64 @@ allPackets NetSniffer::StartSniff(){
 	}
 
     allPackets p;
-	// now we can set our callback function
 
 	pcap_loop(handle, num_packets, got_packet, (u_char *)(&p));
 
 	pcap_freecode(&fp);
-    //pcap_close(handle);
+    pcap_close(handle);
     return p;
 };
 
+void allPackets::PrintVector() {
+    int i;
+    SplitPacket s_pack;
+    for (i = 0; i < v.size(); i++) {
+        s_pack = v[i];
+        printf("From: %s\n", inet_ntoa(s_pack.ip.ip_src));
+        printf("To: %s\n", inet_ntoa(s_pack.ip.ip_dst));
 
+        switch(s_pack.ip.ip_p) {
+            case IPPROTO_TCP:
+                printf("Protocol: TCP\n");
 
+                if (s_pack.size_tcp < 20) {
+                    printf("Invalid TCP header length: %u bytes\n", s_pack.size_tcp);
+                }
+                printf("Src port: %d\n", ntohs(s_pack.tcp.th_sport));
+                printf("Dst port: %d\n", ntohs(s_pack.tcp.th_dport));
+
+                if (s_pack.size_payload > 0) {
+                    printf("Payload (%d bytes):\n\n\n", s_pack.size_payload);
+                }
+                else {
+                cout << endl << endl;
+                }
+                break;
+            case IPPROTO_UDP:
+                printf("Protocol: UDP\n");
+                s_pack.size_udp = UDP_length;
+
+                if (s_pack.size_udp < 8) {
+                    printf("Invalid UDP header length: %u bytes\n", s_pack.size_udp);
+                }
+                printf("Src port: %d\n", ntohs(s_pack.udp.s_port));
+                printf("Dst port: %d\n", ntohs(s_pack.udp.d_port));
+
+                if (s_pack.size_payload > 0) {
+                    printf("Payload (%d bytes):\n\n\n", s_pack.size_payload);
+                }
+                break;
+            default:
+                printf("Protocol: %c\n\n\n", s_pack.ip.ip_p );
+        }
+    }
+};
+
+void Session::PrintSession(){
+    cout << "From ip:   " << inet_ntoa(ip_src) << endl;
+    cout << "To ip:     " << inet_ntoa(ip_dst) << endl;
+    cout << "From port: " << ntohs(port_src) << endl;
+    cout << "To port:   " << ntohs(port_dst) << endl;
+    cout << "Protocol   " << prot << endl;
+    cout << endl;
+}
