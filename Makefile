@@ -1,19 +1,17 @@
-all: start
+main: main.o class_sniff.o StatisticAnalysis.o SignatureAnalisator.o 
+	g++ main.o class_sniff.o StatisticAnalysis.o SignatureAnalisator.o -lpcap -o main 
 
-start: main.o class_sniff.o StatisticAnalysis.o SignatureAnalisator.o
-	g++ main.o class_sniff.o StatisticAnalysis.o -lpcap -o start
+main.o: main.c class_sniff.h StatisticAnalysis.h
+	g++ -c main.c 
+ 
+class_sniff.o: class_sniff.c class_sniff.h
+	g++ -c class_sniff.c 
 
-main.o: main.c
-	g++ -c main.c  class_sniff.c class_sniff.h  
-
-class_sniff.o: class_sniff.c
-	g++ -c class_sniff.c class_sniff.h main.c
-
-StatisticAnalysis.o: StatisticAnalysis.cpp
-	g++ -c StatisticAnalysis.cpp StatisticAnalysis.h
-
-SignatureAnalisator.o: SignatureAnalisator.c
-	g++ -c SignatureAnalisator.c SignatureAnalisator.h main.c
+StatisticAnalysis.o: StatisticAnalysis.cpp StatisticAnalysis.h 
+	g++ -c StatisticAnalysis.cpp -std=c++11
+ 
+SignatureAnalisator.o: SignatureAnalisator.c SignatureAnalisator.h
+	g++ -c SignatureAnalisator.c 
     
 clean:
-	rm *.o start
+	rm *.o main
