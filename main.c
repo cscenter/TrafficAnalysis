@@ -15,7 +15,7 @@
 
 #include "class_sniff.h"
 #include "StatisticAnalysis.h"
-#include "SignatureAnalisator.c"
+#include "SignatureAnalisator.h"
 
 #define SNAP_LEN 1518
 #define SIZE_ETHERNET 14
