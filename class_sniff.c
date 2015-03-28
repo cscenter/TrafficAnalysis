@@ -26,6 +26,8 @@
 using namespace std;
 
 
+//EL: rename file! 
+
 ParsePacket::ParsePacket() {
 };
 
@@ -50,6 +52,8 @@ SplitPacket ParsePacket::Parse(const struct pcap_pkthdr *head, const u_char *pac
 				return s_pack;
 			}
 			s_pack.size_payload = ntohs(s_pack.ip.ip_len) - (s_pack.size_ip + s_pack.size_tcp);
+			//malloc --> new
+			// where is free?
 			s_pack.payload = (u_char *) malloc(s_pack.size_payload * sizeof(u_char));
 			memmove(s_pack.payload, ( (u_char *)(packet + SIZE_ETHERNET + s_pack.size_ip + s_pack.size_tcp) ), s_pack.size_payload);
 			break;
@@ -84,6 +88,7 @@ NetSniffer::NetSniffer() {
 
 
 NetSniffer::NetSniffer(char *device, char *protocol, int n) {
+	//EL change to static arrays
 	dev = (char *) malloc((sizeof(device)));
 	strcpy(dev, device);
 	filter_exp = (char *) malloc((sizeof(protocol)));
@@ -196,6 +201,8 @@ void allPackets::PrintVector() {
     }
 };
 
+
+//operator<<
 void Session::PrintSession(){
     cout << "From ip:   " << inet_ntoa(ip_src) << endl;
     cout << "To ip:     " << inet_ntoa(ip_dst) << endl;

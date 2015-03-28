@@ -19,10 +19,11 @@
 
 #include "class_sniff.h"
 
+//EL: check style
 struct Packages {
     struct sniff_ip ip;
-    vector<int> uplink;
-    vector<int> downlink;
+    std::vector<int> uplink;
+    std::vector<int> downlink;
     int up_init_sec;
     int up_prev_sec;
     int down_init_sec;
@@ -36,8 +37,9 @@ struct Packages {
 };
 
 class StatisticAnalysis {
-    map<Session, Packages> PackagesTime;
+    std::map<Session, Packages> PackagesTime;
 public:
+    //const allPackets&
     StatisticAnalysis(allPackets p);
     void print_map();
     void write_map();

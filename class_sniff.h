@@ -6,7 +6,9 @@
 //#include <netinet/in.h>
 //#include <map>
 
-
+//EL: CLASS_SNIFF_H
+#ifndef class_sniff_h
+#define class_sniff_h
 
 #include <pcap.h>
 #include <stdio.h>
@@ -22,12 +24,9 @@
 #define SNAP_LEN 1518
 #define SIZE_ETHERNET 14
 #define ETHER_ADDR_LEN 6
+//EL: change case
 #define UDP_length 8
 
-using namespace std;
-
-#ifndef class_sniff_h
-#define class_sniff_h
 
 struct sniff_ethernet {
         u_char  ether_dhost[ETHER_ADDR_LEN];
@@ -97,7 +96,8 @@ struct SplitPacket {
 	int size_tcp;
 	int size_payload;
 	int size_udp;
-	bool flag;
+	//EL: что делает это переменная?
+    bool flag;
 };
 
 
@@ -117,12 +117,13 @@ struct Session {
     struct  in_addr ip_dst;
     u_short port_src;
     u_short port_dst;
-    string prot;
+    std::string prot;
     u_char protocol;
     //time?
 
     void PrintSession();
 
+    //EL: move to cpp
     bool operator < (const Session & b) const {
         if (ip_src.s_addr != b.ip_src.s_addr) return ip_src.s_addr < b.ip_src.s_addr;
 	if (ip_dst.s_addr != b.ip_dst.s_addr) return ip_dst.s_addr < b.ip_dst.s_addr;
@@ -135,7 +136,7 @@ struct Session {
 
 
 struct allPackets {
-     vector<SplitPacket> v;
+     std::vector<SplitPacket> v;
 
      void PrintVector();
 };
@@ -159,6 +160,7 @@ public:
 
 	allPackets StartSniff();
 
+    //EL move to cpp
 	static void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
 		allPackets * pack = (allPackets *) args;
 		SplitPacket value;

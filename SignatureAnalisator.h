@@ -17,36 +17,37 @@
 
 #include "class_sniff.h"
 
-
-
+//EL add private
 class PackData {
 public:
     struct in_addr src;
-    vector<u_char*> UpLoad;
-    vector<u_char*> DownLoad;
+    std::vector<u_char*> UpLoad;
+    std::vector<u_char*> DownLoad;
 
     PackData();
-
+    //const Session&
     void FormPackDate(Session session, SplitPacket pack);
 
     int CheckDate(char *expr);
 };
 
+
+//EL add private
 class SignatureAnalisator {
 
-    map<Session, PackData> Map;
+    std::map<Session, PackData> Map;
 
 public:
 
     SignatureAnalisator();
 
-    map<Session, PackData> GetMap() {
+    std::map<Session, PackData> GetMap() {
         return Map;
     }
 
     void PrintMap();
 
-    void FormMap(vector<SplitPacket> Packets);
+    void FormMap(std::vector<SplitPacket> Packets);
 
     Session GetSession(SplitPacket pack);
 };

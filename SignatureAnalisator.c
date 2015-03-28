@@ -16,7 +16,7 @@
 #include <string>
 #include "SignatureAnalisator.h"
 
-
+using namespace std;
 
 PackData::PackData() {
 }
@@ -34,6 +34,7 @@ void PackData::FormPackDate(Session session, SplitPacket pack) {
     }
 }
 
+//EL const
 int PackData::CheckDate( char *expr) {
     int count = 0;
     int i;

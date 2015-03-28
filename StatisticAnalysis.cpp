@@ -17,6 +17,8 @@
 #include <string>
 #include <time.h>
 
+//EL: choose stdio or iostream
+
 #include "StatisticAnalysis.h"
 
 using namespace std;
@@ -76,7 +78,9 @@ StatisticAnalysis::StatisticAnalysis(allPackets p) {   //FILL MAP
                     }
                     //it2->second.down_prev_sec = p.v[i].header.ts.tv_sec;
                 }
-                if (it2->second.down_prev_sec == (int)(p.v[i].header.ts.tv_sec)) it2->second.downlink[it2->second.downlink.size() - 1]++;
+                if (it2->second.down_prev_sec == (int)(p.v[i].header.ts.tv_sec)) {
+                    it2->second.downlink[it2->second.downlink.size() - 1]++;
+                }
                 else {
                      it2->second.down_prev_sec = p.v[i].header.ts.tv_sec;
                      it2->second.downlink.push_back(1);
