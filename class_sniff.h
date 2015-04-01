@@ -1,30 +1,32 @@
+//#include <time.h>
+//#include <ctype.h>
+//#include <errno.h>
+//#include <sys/types.h>
+//#include <sys/socket.h>
+//#include <netinet/in.h>
+//#include <map>
+
+//EL: CLASS_SNIFF_H
+#ifndef class_sniff_h
+#define class_sniff_h
+
 #include <pcap.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <iostream>
 #include <new>
-
-#include <ctype.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
-#include <map>
 #include <vector>
 #include <string>
-#include <time.h>
+
 
 #define SNAP_LEN 1518
 #define SIZE_ETHERNET 14
 #define ETHER_ADDR_LEN 6
+//EL: change case
 #define UDP_length 8
 
-using namespace std;
-
-#ifndef class_sniff_h
-#define class_sniff_h
 
 struct sniff_ethernet {
         u_char  ether_dhost[ETHER_ADDR_LEN];
@@ -94,7 +96,8 @@ struct SplitPacket {
 	int size_tcp;
 	int size_payload;
 	int size_udp;
-	bool flag;
+	//EL: что делает это переменная?
+    bool flag;
 };
 
 
@@ -114,9 +117,13 @@ struct Session {
     struct  in_addr ip_dst;
     u_short port_src;
     u_short port_dst;
+    std::string prot;
     u_char protocol;
     //time?
 
+    void PrintSession();
+
+    //EL: move to cpp
     bool operator < (const Session & b) const {
         if (ip_src.s_addr != b.ip_src.s_addr) return ip_src.s_addr < b.ip_src.s_addr;
 	if (ip_dst.s_addr != b.ip_dst.s_addr) return ip_dst.s_addr < b.ip_dst.s_addr;
@@ -129,57 +136,9 @@ struct Session {
 
 
 struct allPackets {
-     vector<SplitPacket> v;
+     std::vector<SplitPacket> v;
 
-     void PrintVector() {
-        int i;
-        SplitPacket s_pack;
-        for (i = 0; i < v.size(); i++) {
-            //cout <<  i << "  " << v[0].size_ip << "  " <<  inet_ntoa(v[0].ip.ip_src) << endl;
-            s_pack = v[i];
-            //cout << i << endl << endl;
-            printf("From: %s\n", inet_ntoa(s_pack.ip.ip_src));
-            printf("To: %s\n", inet_ntoa(s_pack.ip.ip_dst));
-
-            switch(s_pack.ip.ip_p) {
-                case IPPROTO_TCP:
-                    printf("Protocol: TCP\n");
-                    if (s_pack.size_tcp < 20) {
-                        printf("Invalid TCP header length: %u bytes\n", s_pack.size_tcp);
-                    }
-                    printf("Src port: %d\n", ntohs(s_pack.tcp.th_sport));
-                    printf("Dst port: %d\n", ntohs(s_pack.tcp.th_dport));
-
-                    if (s_pack.size_payload > 0) {
-                        printf("Payload (%d bytes):\n\n\n", s_pack.size_payload);
-                    }
-                    else {
-                    cout << endl << endl;
-                    }
-
-                    break;
-                case IPPROTO_UDP:
-                    printf("Protocol: UDP\n");
-                    s_pack.size_udp = UDP_length;
-
-                    if (s_pack.size_udp < 8) {
-                        printf("Invalid UDP header length: %u bytes\n", s_pack.size_udp);
-                    }
-
-                    printf("Src port: %d\n", ntohs(s_pack.udp.s_port));
-                    printf("Dst port: %d\n", ntohs(s_pack.udp.d_port));
-
-                    if (s_pack.size_payload > 0) {
-                        printf("Payload (%d bytes):\n\n\n", s_pack.size_payload);
-                        //print_payload(payload, size_payload);
-                    }
-
-                    break;
-                default:
-                    printf("Protocol: %c\n\n\n", s_pack.ip.ip_p );
-            }
-	    }
-    }
+     void PrintVector();
 };
 
 class NetSniffer {
@@ -201,6 +160,7 @@ public:
 
 	allPackets StartSniff();
 
+    //EL move to cpp
 	static void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
 		allPackets * pack = (allPackets *) args;
 		SplitPacket value;
@@ -213,22 +173,3 @@ public:
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
