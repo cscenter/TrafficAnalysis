@@ -1,21 +1,9 @@
-//#include <pcap.h>
-//#include <stdio.h>
-#include <string.h>
-//#include <stdlib.h>
-//#include <iostream>
-//#include <new>
+#ifndef SIGNATURE_ANALISATOR_H
+#define SIGNATURE_ANALISATOR_H
 
-//#include <ctype.h>
-//#include <errno.h>
-//#include <sys/types.h>
-//#include <sys/socket.h>
-//#include <netinet/in.h>
-//#include <arpa/inet.h>
 #include <map>
-#include <vector>
-//#include <string>
+#include "Net_sniffer.h"
 
-#include "class_sniff.h"
 
 //EL add private
 class PackData {
@@ -51,3 +39,5 @@ public:
 
     Session GetSession(SplitPacket pack);
 };
+
+#endif

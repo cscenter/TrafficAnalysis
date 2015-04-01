@@ -17,7 +17,7 @@
 #include <string>
 #include <time.h>
 
-#include "class_sniff.h"
+#include "Net_sniffer.h"
 
 //EL: check style
 struct Packages {

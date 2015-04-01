@@ -1,83 +1,4 @@
-#include <pcap.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <iostream>
-#include <new>
-
-#include <ctype.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <map>
-#include <vector>
-#include <string>
-#include <time.h>
-
-#include "class_sniff.h"
-
-#define SNAP_LEN 1518
-#define SIZE_ETHERNET 14
-#define ETHER_ADDR_LEN 6
-#define UDP_length 8
-
-using namespace std;
-
-
-//EL: rename file! 
-
-ParsePacket::ParsePacket() {
-};
-
-SplitPacket ParsePacket::Parse(const struct pcap_pkthdr *head, const u_char *packet) {
-	SplitPacket s_pack;
-	s_pack.header = *head;
-	s_pack.ethernet = *(sniff_ethernet*)packet;
-	s_pack.ip = *(sniff_ip *)(packet + SIZE_ETHERNET);
-	s_pack.size_ip = (((s_pack.ip).ip_vhl) & 0x0f)*4;
-	if (s_pack.size_ip < 20) {
-        s_pack.flag = false;
-		return s_pack;
-	}
-	switch(s_pack.ip.ip_p) {
-		case IPPROTO_TCP:
-			s_pack.flag = true;
-			s_pack.tcp = *(struct sniff_tcp*)(packet + SIZE_ETHERNET + s_pack.size_ip);
-			s_pack.size_tcp = (((s_pack.tcp).th_offx2 & 0xf0) >> 4) * 4;
-
-			if (s_pack.size_tcp < 20) {
-                s_pack.flag = false;
-				return s_pack;
-			}
-			s_pack.size_payload = ntohs(s_pack.ip.ip_len) - (s_pack.size_ip + s_pack.size_tcp);
-			//malloc --> new
-			// where is free?
-			s_pack.payload = (u_char *) malloc(s_pack.size_payload * sizeof(u_char));
-			memmove(s_pack.payload, ( (u_char *)(packet + SIZE_ETHERNET + s_pack.size_ip + s_pack.size_tcp) ), s_pack.size_payload);
-			break;
-		case IPPROTO_UDP:
-			s_pack.flag = true;
-			s_pack.udp = *(struct sniff_udp*)(packet + SIZE_ETHERNET + s_pack.size_ip); //как-то нужно ведь смотреть длину заголовка
-			s_pack.size_udp = UDP_length;
-
-			if (s_pack.size_udp < 8) {
-                s_pack.flag = false;
-				return s_pack;
-			}
-            s_pack.size_payload = ntohs(s_pack.ip.ip_len) - (s_pack.size_ip + s_pack.size_udp);
-            s_pack.payload = (u_char *) malloc(s_pack.size_payload * sizeof(u_char));
-			memmove(s_pack.payload,(u_char *)(packet + SIZE_ETHERNET + s_pack.size_ip + s_pack.size_udp), s_pack.size_payload);
-			break;
-		default:
-			s_pack.flag = false;
-			return s_pack;
-	}
-	return s_pack;
-};
-
-
+#include "Net_sniffer.h"
 
 NetSniffer::NetSniffer() {
 	dev = NULL;
@@ -156,6 +77,16 @@ allPackets NetSniffer::StartSniff(){
     return p;
 };
 
+void NetSniffer::got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
+    allPackets * pack = (allPackets *) args;
+    SplitPacket value;
+    ParsePacket *obj = new ParsePacket();
+    value = obj->Parse(header, packet);
+    if (value.flag) {
+        pack -> v.push_back(value);
+    }
+}
+
 void allPackets::PrintVector() {
     int i;
     SplitPacket s_pack;
@@ -183,7 +114,7 @@ void allPackets::PrintVector() {
                 break;
             case IPPROTO_UDP:
                 printf("Protocol: UDP\n");
-                s_pack.size_udp = UDP_length;
+                s_pack.size_udp = UDP_LENGTH;
 
                 if (s_pack.size_udp < 8) {
                     printf("Invalid UDP header length: %u bytes\n", s_pack.size_udp);
@@ -201,7 +132,13 @@ void allPackets::PrintVector() {
     }
 };
 
-
+bool Session::operator < (const Session & b) const {
+    if (ip_src.s_addr != b.ip_src.s_addr) return ip_src.s_addr < b.ip_src.s_addr;
+    if (ip_dst.s_addr != b.ip_dst.s_addr) return ip_dst.s_addr < b.ip_dst.s_addr;
+    if (port_src != b.port_src) return port_src < b.port_src;
+    if (port_dst != b.port_dst) return port_dst < b.port_dst;
+    return protocol < b.protocol;
+}
 //operator<<
 void Session::PrintSession(){
     cout << "From ip:   " << inet_ntoa(ip_src) << endl;
