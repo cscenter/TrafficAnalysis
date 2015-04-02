@@ -1,5 +1,5 @@
+#include <iostream>
 #include "SignatureAnalisator.h"
-
 
 using namespace std;
 
@@ -53,7 +53,7 @@ void SignatureAnalisator::PrintMap() {
     iter = Map.begin();
     while(iter != Map.end()) {
         Session session = iter->first;
-        session.PrintSession();
+        session.print_session();
         PackData p_date = iter->second;
         char expr[] = "HTTP/1.1";
         int answer = p_date.CheckDate(expr);

@@ -1,6 +1,12 @@
+#include <pcap.h>
+#include <iostream>
+#include <arpa/inet.h>
+#include <string>
 #include "Net_sniffer.h"
 
-NetSniffer::NetSniffer() {
+using namespace std;
+
+Net_sniffer::Net_sniffer() {
 	dev = NULL;
 	//strcpy(filter_exp,"\0ip");// недоработанный
 	num_packets = 100;
@@ -8,7 +14,7 @@ NetSniffer::NetSniffer() {
 
 
 
-NetSniffer::NetSniffer(char *device, char *protocol, int n) {
+Net_sniffer::Net_sniffer(char *device, char *protocol, int n) {
 	//EL change to static arrays
 	dev = (char *) malloc((sizeof(device)));
 	strcpy(dev, device);
@@ -17,7 +23,7 @@ NetSniffer::NetSniffer(char *device, char *protocol, int n) {
 	num_packets = n;
 };
 
-allPackets NetSniffer::StartSniff(){
+All_packets Net_sniffer::start_sniff(){
 
 	if ( dev == NULL) {
 		// find a capture device if not specified on command-line
@@ -68,7 +74,7 @@ allPackets NetSniffer::StartSniff(){
 		exit(EXIT_FAILURE);
 	}
 
-    allPackets p;
+    All_packets p;
 
 	pcap_loop(handle, num_packets, got_packet, (u_char *)(&p));
 
@@ -77,8 +83,8 @@ allPackets NetSniffer::StartSniff(){
     return p;
 };
 
-void NetSniffer::got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
-    allPackets * pack = (allPackets *) args;
+void Net_sniffer::got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
+    All_packets * pack = (All_packets *) args;
     SplitPacket value;
     ParsePacket *obj = new ParsePacket();
     value = obj->Parse(header, packet);
@@ -87,7 +93,7 @@ void NetSniffer::got_packet(u_char *args, const struct pcap_pkthdr *header, cons
     }
 }
 
-void allPackets::PrintVector() {
+void All_packets::print_vector() {
     int i;
     SplitPacket s_pack;
     for (i = 0; i < v.size(); i++) {
@@ -140,7 +146,7 @@ bool Session::operator < (const Session & b) const {
     return protocol < b.protocol;
 }
 //operator<<
-void Session::PrintSession(){
+void Session::print_session(){
     cout << "From ip:   " << inet_ntoa(ip_src) << endl;
     cout << "To ip:     " << inet_ntoa(ip_dst) << endl;
     cout << "From port: " << ntohs(port_src) << endl;

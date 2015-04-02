@@ -1,15 +1,8 @@
 #ifndef NET_SNIFFER_H
 #define NET_SNIFFER_H
-
-#include <pcap.h>
-#include <string.h>
-#include <stdlib.h>
-#include <iostream>
-#include <arpa/inet.h>
 #include <vector>
 #include <string>
-
-#include "Class_Parse_packet.h"
+#include "Class_parse_packet.h"
 
 using namespace std;
 
@@ -23,7 +16,7 @@ struct Session {
     u_char protocol;
     //time?
 
-    void PrintSession();
+    void print_session();
 
     //EL: move to cpp
     bool operator < (const Session & b) const;
@@ -31,13 +24,13 @@ struct Session {
 
 
 
-struct allPackets {
+struct All_packets {
      std::vector<SplitPacket> v;
 
-     void PrintVector();
+     void print_vector();
 };
 
-class NetSniffer {
+class Net_sniffer {
 	char *dev;				    // device name
 	char errbuf[PCAP_ERRBUF_SIZE];		// error buffer
 	pcap_t *handle;				// packet capture handle
@@ -47,14 +40,11 @@ class NetSniffer {
 	bpf_u_int32 net;			// ip
 	int num_packets;			// number of packets to capture
 public:
+	Net_sniffer();
 
-	NetSniffer();
+	Net_sniffer(char *device, char *protocol, int n);
 
-	int get();
-
-	NetSniffer(char *device, char *protocol, int n);
-
-	allPackets StartSniff();
+	All_packets start_sniff();
 
     //EL move to cpp
 	static void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);

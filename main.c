@@ -17,27 +17,27 @@ using namespace std;
 
 int main(int argc, char **argv) {
 	char protocol[] = "ip";
-    allPackets p;
+    All_packets p;
 	if (argc == 2) {
-			NetSniffer *obj = new NetSniffer(argv[1], protocol, 40);
-			p = obj->StartSniff();
+			Net_sniffer *obj = new Net_sniffer(argv[1], protocol, 40);
+			p = obj->start_sniff();
 	}
 	else if (argc > 2) {
 			fprintf(stderr, "error: unrecognized command-line options\n\n");
 			exit(EXIT_FAILURE);
 	}
 	else {
-		NetSniffer *obj = new NetSniffer();
-        p = obj->StartSniff();
+		Net_sniffer *obj = new Net_sniffer();
+        p = obj->start_sniff();
 	}
 
-    p.PrintVector();
+    p.print_vector();
 
-    SignatureAnalisator *sig_analys = new SignatureAnalisator();
+    SignatureAnalisator* sig_analys = new SignatureAnalisator();
     sig_analys->FormMap(p.v);
     sig_analys->PrintMap();
     //StatisticAnalysis * statAnalysis = new StatisticAnalysis(p.v);
-    printf("\nCapture complete.\n");
+    printf("\nCapture complete.s\n");
 
 	return 0;
 };
