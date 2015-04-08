@@ -34,10 +34,10 @@ struct sniff_ip {
 typedef u_int tcp_seq;
 
 struct sniff_udp {
-	u_short s_port;
-	u_short d_port;
-	u_short length;
-	u_short k_sum;
+    u_short s_port;
+    u_short d_port;
+    u_short length;
+    u_short k_sum;
 };
 
 struct sniff_tcp {

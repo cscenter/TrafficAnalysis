@@ -16,28 +16,28 @@ using namespace std;
 
 
 int main(int argc, char **argv) {
-	char protocol[] = "ip";
+    char protocol[] = "ip";
     All_packets p;
-	if (argc == 2) {
-			Net_sniffer *obj = new Net_sniffer(argv[1], protocol, 40);
-			p = obj->start_sniff();
-	}
-	else if (argc > 2) {
-			fprintf(stderr, "error: unrecognized command-line options\n\n");
-			exit(EXIT_FAILURE);
-	}
-	else {
-		Net_sniffer *obj = new Net_sniffer();
+    if (argc == 2) {
+            Net_sniffer *obj = new Net_sniffer(argv[1], protocol, 40);
+            p = obj->start_sniff();
+    }
+    else if (argc > 2) {
+            fprintf(stderr, "error: unrecognized command-line options\n\n");
+            exit(EXIT_FAILURE);
+    }
+    else {
+        Net_sniffer *obj = new Net_sniffer();
         p = obj->start_sniff();
-	}
+    }
 
     p.print_vector();
-
+        
     Signature_analysis* sig_analys = new Signature_analysis();
     sig_analys->FormMap(p.v);
     sig_analys->PrintMap();
     //StatisticAnalysis * statAnalysis = new StatisticAnalysis(p.v);
     printf("\nCapture complete.s\n");
 
-	return 0;
+    return 0;
 };

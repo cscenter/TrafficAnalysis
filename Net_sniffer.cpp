@@ -8,79 +8,79 @@
 using namespace std;
 
 Net_sniffer::Net_sniffer() {
-	dev = NULL;
-	//strcpy(filter_exp,"\0ip");// недоработанный
-	num_packets = 100;
+    dev = NULL;
+    //strcpy(filter_exp,"\0ip");// недоработанный
+    num_packets = 100;
 };
 
 
 
 Net_sniffer::Net_sniffer(char *device, char *protocol, int n) {
-	//EL change to static arrays
-	dev = (char *) malloc((sizeof(device)));
-	strcpy(dev, device);
-	filter_exp = (char *) malloc((sizeof(protocol)));
-	strcpy(filter_exp, protocol);
-	num_packets = n;
+    //EL change to static arrays
+    dev = (char *) malloc((sizeof(device)));
+    strcpy(dev, device);
+    filter_exp = (char *) malloc((sizeof(protocol)));
+    strcpy(filter_exp, protocol);
+    num_packets = n;
 };
 
 All_packets Net_sniffer::start_sniff(){
 
-	if ( dev == NULL) {
-		// find a capture device if not specified on command-line
+    if ( dev == NULL) {
+        // find a capture device if not specified on command-line
         
-		dev = pcap_lookupdev(errbuf);
-		if (dev == NULL) {
-			fprintf(stderr, "Couldn't find default device: %s\n",
-			    errbuf);
-			exit(EXIT_FAILURE);
-		}
-	}
+        dev = pcap_lookupdev(errbuf);
+        if (dev == NULL) {
+            fprintf(stderr, "Couldn't find default device: %s\n",
+                errbuf);
+            exit(EXIT_FAILURE);
+        }
+    }
 
-	// get network number and mask associated with capture device
-	if (pcap_lookupnet(dev, &net, &mask, errbuf) == -1) {
-		fprintf(stderr, "Couldn't get netmask for device %s: %s\n", dev, errbuf);
-		net = 0;
-		mask = 0;
-	}
+    // get network number and mask associated with capture device
+    if (pcap_lookupnet(dev, &net, &mask, errbuf) == -1) {
+        fprintf(stderr, "Couldn't get netmask for device %s: %s\n", dev, errbuf);
+        net = 0;
+        mask = 0;
+    }
 
-	printf("Device: %s\n", dev);
-	printf("Number of packets: %d\n", num_packets);
-	printf("Filter expression: %s\n\n\n", filter_exp);
+    printf("Device: %s\n", dev);
+    printf("Number of packets: %d\n", num_packets);
+    printf("Filter expression: %s\n\n\n", filter_exp);
 
-	// open capture device
-	handle = pcap_open_live(dev, SNAP_LEN, 1, 1000, errbuf);
-	//handle = pcap_open_offline(dev, errbuf);
-	if (handle == NULL) {
-		fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
-		exit(EXIT_FAILURE);
-	}
+    // open capture device
+    handle = pcap_open_live(dev, SNAP_LEN, 1, 1000, errbuf);
+    //handle = pcap_open_offline(dev, errbuf);
+    if (handle == NULL) {
+        fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
+        exit(EXIT_FAILURE);
+    }
 
-	// make sure we're capturing on an Ethernet device [2]
-	if (pcap_datalink(handle) != DLT_EN10MB) {
-		fprintf(stderr, "%s is not an Ethernet\n", dev);
-		exit(EXIT_FAILURE);
-	}
+    // make sure we're capturing on an Ethernet device [2]
+    if (pcap_datalink(handle) != DLT_EN10MB) {
+        fprintf(stderr, "%s is not an Ethernet\n", dev);
+        exit(EXIT_FAILURE);
+    }
 
-	// compile the filter expression
-	if (pcap_compile(handle, &fp, filter_exp, 0, net) == -1) {
-		fprintf(stderr, "Couldn't parse filter %s: %s\n",
-		    filter_exp, pcap_geterr(handle));
-		exit(EXIT_FAILURE);
-	}
+    // compile the filter expression
+    if (pcap_compile(handle, &fp, filter_exp, 0, net) == -1) {
+        fprintf(stderr, "Couldn't parse filter %s: %s\n",
+            filter_exp, pcap_geterr(handle));
+        exit(EXIT_FAILURE);
+    }
 
-	// apply the compiled filter
-	if (pcap_setfilter(handle, &fp) == -1) {
-		fprintf(stderr, "Couldn't install filter %s: %s\n",
-		    filter_exp, pcap_geterr(handle));
-		exit(EXIT_FAILURE);
-	}
+    // apply the compiled filter
+    if (pcap_setfilter(handle, &fp) == -1) {
+        fprintf(stderr, "Couldn't install filter %s: %s\n",
+            filter_exp, pcap_geterr(handle));
+        exit(EXIT_FAILURE);
+    }
 
     All_packets p;
 
-	pcap_loop(handle, num_packets, got_packet, (u_char *)(&p));
+    pcap_loop(handle, num_packets, got_packet, (u_char *)(&p));
 
-	pcap_freecode(&fp);
+    pcap_freecode(&fp);
     pcap_close(handle);
     return p;
 };
