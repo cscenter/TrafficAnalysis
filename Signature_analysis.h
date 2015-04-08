@@ -1,6 +1,5 @@
 #ifndef SIGNATURE_ANALISATOR_H
 #define SIGNATURE_ANALISATOR_H
-
 #include <map>
 #include "Net_sniffer.h"
 
@@ -14,20 +13,20 @@ public:
 
     PackData();
     //const Session&
-    void FormPackDate(Session session, SplitPacket pack);
+    void FormPackDate(Session session, Split_packet pack);
 
     int CheckDate(char *expr);
 };
 
 
 //EL add private
-class SignatureAnalisator {
+class Signature_analysis {
 
     std::map<Session, PackData> Map;
 
 public:
 
-    SignatureAnalisator();
+    Signature_analysis();
 
     std::map<Session, PackData> GetMap() {
         return Map;
@@ -35,9 +34,9 @@ public:
 
     void PrintMap();
 
-    void FormMap(std::vector<SplitPacket> Packets);
+    void FormMap(std::vector<Split_packet> Packets);
 
-    Session GetSession(SplitPacket pack);
+    Session GetSession(Split_packet pack);
 };
 
 #endif

@@ -2,6 +2,7 @@
 #include <iostream>
 #include <arpa/inet.h>
 #include <string>
+#include <stdlib.h>
 #include "Net_sniffer.h"
 
 using namespace std;
@@ -86,17 +87,17 @@ All_packets Net_sniffer::start_sniff(){
 
 void Net_sniffer::got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
     All_packets * pack = (All_packets *) args;
-    SplitPacket value;
-    ParsePacket *obj = new ParsePacket();
+    Split_packet value;
+    Parse_packet *obj = new Parse_packet();
     value = obj->Parse(header, packet);
-    if (value.flag) {
+    if (!value.is_broken) {
         pack -> v.push_back(value);
     }
 }
 
 void All_packets::print_vector() {
     int i;
-    SplitPacket s_pack;
+    Split_packet s_pack;
     for (i = 0; i < v.size(); i++) {
         s_pack = v[i];
         printf("From: %s\n", inet_ntoa(s_pack.ip.ip_src));

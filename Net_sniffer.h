@@ -25,7 +25,7 @@ struct Session {
 
 
 struct All_packets {
-     std::vector<SplitPacket> v;
+     std::vector<Split_packet> v;
 
      void print_vector();
 };

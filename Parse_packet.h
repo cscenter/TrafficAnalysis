@@ -3,12 +3,12 @@
 
 #include <pcap.h>
 #include <string.h>
-#include <stdlib.h>
+//
 #include <netinet/in.h>
 
 #include "Pack_headers_struct.h"
 
-struct SplitPacket {
+struct Split_packet {
 	struct pcap_pkthdr header;
 	struct sniff_ethernet ethernet;
 	struct sniff_ip ip;
@@ -19,17 +19,16 @@ struct SplitPacket {
 	int size_tcp;
 	int size_payload;
 	int size_udp;
-	//EL: что делает это переменная?
-    bool flag;
+	bool is_broken;
 };
 
 
-class ParsePacket {
+class Parse_packet {
 public:
 
-	ParsePacket();
+	Parse_packet();
 
-	SplitPacket Parse(const struct pcap_pkthdr *head, const u_char *packet);
+	Split_packet Parse(const struct pcap_pkthdr *head, const u_char *packet);
 };
 
 #endif // CLASS_PARSE_PACKET_H

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <new>
+#include <stdlib.h>
 
 #include "Net_sniffer.h"
 #include "Signature_analysis.h"
@@ -32,7 +33,7 @@ int main(int argc, char **argv) {
 
     p.print_vector();
 
-    SignatureAnalisator* sig_analys = new SignatureAnalisator();
+    Signature_analysis* sig_analys = new Signature_analysis();
     sig_analys->FormMap(p.v);
     sig_analys->PrintMap();
     //StatisticAnalysis * statAnalysis = new StatisticAnalysis(p.v);

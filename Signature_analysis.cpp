@@ -1,4 +1,5 @@
 #include <iostream>
+
 #include "Signature_analysis.h"
 
 using namespace std;
@@ -7,12 +8,9 @@ PackData::PackData() {
 }
 
 
-//LT не забудь убрать malloc и поменять названия переменных
-void PackData::FormPackDate(Session session, SplitPacket pack) {
+void PackData::FormPackDate(Session session, Split_packet pack) {
     src = session.ip_src;     // бред, надо перепроверить
-
-
-    u_char *value = (u_char *)malloc(pack.size_payload * sizeof(u_char));
+    u_char *value = new u_char[pack.size_payload];
     memmove(value, pack.payload, pack.size_payload);
 
     if (src.s_addr == pack.ip.ip_src.s_addr) {
@@ -49,10 +47,10 @@ int PackData::CheckDate(char *expr) {
 }
 
 
-SignatureAnalisator::SignatureAnalisator() {
+Signature_analysis::Signature_analysis() {
 }
 
-void SignatureAnalisator::PrintMap() {
+void Signature_analysis::PrintMap() {
     map<Session, PackData>::iterator iter;
     iter = Map.begin();
     while(iter != Map.end()) {
@@ -71,7 +69,7 @@ void SignatureAnalisator::PrintMap() {
     }
 }
 
-void SignatureAnalisator::FormMap(vector<SplitPacket> Packets) {
+void Signature_analysis::FormMap(vector<Split_packet> Packets) {
     int i;
     for (i = 0; i < Packets.size(); i++) {
         Session session = GetSession(Packets[i]);
@@ -79,7 +77,7 @@ void SignatureAnalisator::FormMap(vector<SplitPacket> Packets) {
     }
 }
 
-Session SignatureAnalisator::GetSession(SplitPacket pack) {
+Session Signature_analysis::GetSession(Split_packet pack) {
     Session session;
     session.ip_src = pack.ip.ip_src;
     session.ip_dst = pack.ip.ip_dst;
