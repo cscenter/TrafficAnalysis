@@ -2,7 +2,7 @@
 #define NET_SNIFFER_H
 #include <vector>
 #include <string>
-#include "Class_parse_packet.h"
+#include "Parse_packet.h"
 
 using namespace std;
 
@@ -31,10 +31,10 @@ struct All_packets {
 };
 
 class Net_sniffer {
-	char *dev;				    // device name
+	char *dev;              // device name
+    char *filter_exp;	    // filter expression
 	char errbuf[PCAP_ERRBUF_SIZE];		// error buffer
 	pcap_t *handle;				// packet capture handle
-	char *filter_exp;			// filter expression
 	struct bpf_program fp;		// compiled filter program (expression)
 	bpf_u_int32 mask;			// subnet mask
 	bpf_u_int32 net;			// ip

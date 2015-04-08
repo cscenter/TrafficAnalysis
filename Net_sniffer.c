@@ -27,6 +27,7 @@ All_packets Net_sniffer::start_sniff(){
 
 	if ( dev == NULL) {
 		// find a capture device if not specified on command-line
+        
 		dev = pcap_lookupdev(errbuf);
 		if (dev == NULL) {
 			fprintf(stderr, "Couldn't find default device: %s\n",

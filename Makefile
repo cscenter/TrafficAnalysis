@@ -1,5 +1,8 @@
-main: Net_sniffer.o Statistic_analysis.o Class_parse_packet.o SignatureAnalisator.o main.o
-	g++ Net_sniffer.o Statistic_analysis.o Class_parse_packet.o SignatureAnalisator.o  main.o -lpcap -o main 
+main: main.o Net_sniffer.o Statistic_analysis.o Parse_packet.o Signature_analysis.o 
+	g++ main.o Net_sniffer.o Statistic_analysis.o Parse_packet.o Signature_analysis.o -lpcap -o main 
+
+main.o: main.cpp Net_sniffer.h Statistic_analysis.h Parse_packet.h Signature_analysis.h
+	g++ -c main.cpp 
 
 Net_sniffer.o: Net_sniffer.c Net_sniffer.h
 	g++ -c Net_sniffer.c
@@ -7,14 +10,11 @@ Net_sniffer.o: Net_sniffer.c Net_sniffer.h
 Statistic_analysis.o: Statistic_analysis.cpp Statistic_analysis.h 
 	g++ -c Statistic_analysis.cpp -std=c++11
 
-Class_parse_packet.o: Class_parse_packet.cpp Class_parse_packet.h
-	g++ -c Class_parse_packet.cpp
- 
-SignatureAnalisator.o: SignatureAnalisator.c SignatureAnalisator.h
-	g++ -c SignatureAnalisator.c    
- 
-main.o: main.c Net_sniffer.h Statistic_analysis.h Class_parse_packet.h SignatureAnalisator.h
-	g++ -c main.c 
+Class_parse_packet.o: Parse_packet.cpp Parse_packet.h
+	g++ -c Parse_packet.cpp
+
+SignatureAnalisator.o: Signature_analysis.c Signature_analysis.h
+	g++ -c Signature_analysis.c    
 
 clean:
 	rm *.o main
