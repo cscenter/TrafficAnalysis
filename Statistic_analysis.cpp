@@ -9,75 +9,71 @@
 
 using namespace std;
 
-Statistic_analysis::Statistic_analysis(const All_packets& p) {   //FILL MAP
-        int i;    
-        for (i = 0; i < p.v.size(); i++) {
-            Session temp_ses, temp_ses2;
-            temp_ses.ip_src = p.v[i].ip.ip_src;
-            temp_ses.ip_dst = p.v[i].ip.ip_dst;
-            temp_ses.protocol = p.v[i].ip.ip_p;
-            temp_ses2.ip_src = p.v[i].ip.ip_dst;
-            temp_ses2.ip_dst = p.v[i].ip.ip_src;
-            temp_ses2.protocol = p.v[i].ip.ip_p;
-            switch(p.v[i].ip.ip_p) {
-                case IPPROTO_TCP:
-                    temp_ses.port_src = p.v[i].tcp.th_sport;
-                    temp_ses.port_dst = p.v[i].tcp.th_dport;
-                    temp_ses2.port_src = p.v[i].tcp.th_dport;
-                    temp_ses2.port_dst = p.v[i].tcp.th_sport;
-                    break;
-                case IPPROTO_UDP:
-                    temp_ses.port_src = p.v[i].udp.s_port;
-                    temp_ses.port_dst = p.v[i].udp.d_port;
-                    temp_ses2.port_src = p.v[i].udp.d_port;
-                    temp_ses2.port_dst = p.v[i].udp.s_port;
-                    break;
-            }
-            map<Session, Packages>::iterator it = Pack_time.find(temp_ses);
-            map<Session, Packages>::iterator it2 = Pack_time.find(temp_ses2);
+Statistic_analysis::Statistic_analysis(const Split_packet& p) {   //FILL MAP
+        Session temp_ses, temp_ses2;
+        temp_ses.ip_src = p.ip.ip_src;
+        temp_ses.ip_dst = p.ip.ip_dst;
+        temp_ses.protocol = p.ip.ip_p;
+        temp_ses2.ip_src = p.ip.ip_dst;
+        temp_ses2.ip_dst = p.ip.ip_src;
+        temp_ses2.protocol = p.ip.ip_p;
+        switch(p.ip.ip_p) {
+            case IPPROTO_TCP:
+                temp_ses.port_src = p.tcp.th_sport;
+                temp_ses.port_dst = p.tcp.th_dport;
+                temp_ses2.port_src = p.tcp.th_dport;
+                temp_ses2.port_dst = p.tcp.th_sport;
+                break;
+            case IPPROTO_UDP:
+                temp_ses.port_src = p.udp.s_port;
+                temp_ses.port_dst = p.udp.d_port;
+                temp_ses2.port_src = p.udp.d_port;
+                temp_ses2.port_dst = p.udp.s_port;
+                break;
+        }
+        map<Session, Packages>::iterator it = Pack_time.find(temp_ses);
+        map<Session, Packages>::iterator it2 = Pack_time.find(temp_ses2);
 
 
-            if (it != Pack_time.end()) {
-                if (p.v[i].header.ts.tv_sec > it->second.up_prev_sec + 1 && it->second.up_prev_sec != -1 ) {
-                    int j;
-             
-                    for (j = 0; j < p.v[i].header.ts.tv_sec - it->second.up_prev_sec  - 1; j++) {
-                        it->second.uplink.push_back(0);
-                    }
-                    // it->second.up_prev_sec = p.v[i].header.ts.tv_sec;
+        if (it != Pack_time.end()) {
+            if (p.header.ts.tv_sec > it->second.up_prev_sec + 1 && it->second.up_prev_sec != -1 ) {
+                int j;
+         
+                for (j = 0; j < p.header.ts.tv_sec - it->second.up_prev_sec  - 1; j++) {
+                    it->second.uplink.push_back(0);
                 }
-                if (it->second.up_prev_sec  == (int)(p.v[i].header.ts.tv_sec)) it->second.uplink[it->second.uplink.size() - 1]++;
-                else {
-                    it->second.up_prev_sec = p.v[i].header.ts.tv_sec;
-                    it->second.uplink.push_back(1);
-                }
+                // it->second.up_prev_sec = p.header.ts.tv_sec;
             }
-            else if (it2 != Pack_time.end()) {
-                if (it2->second.up_init_sec == 0) it2->second.up_init_sec = p.v[i].header.ts.tv_sec;
-                if (p.v[i].header.ts.tv_sec > it2->second.down_prev_sec + 1 && it2->second.down_prev_sec != -1 ) {
-                    int j;
-                    for (j = 0; j < p.v[i].header.ts.tv_sec - it2->second.down_prev_sec  - 1; j++) {
-                       it2->second.downlink.push_back(0);
-                    }
-                    //it2->second.down_prev_sec = p.v[i].header.ts.tv_sec;
-                }
-                if (it2->second.down_prev_sec == (int)(p.v[i].header.ts.tv_sec)) {
-                    it2->second.downlink[it2->second.downlink.size() - 1]++;
-                }
-                else {
-                     it2->second.down_prev_sec = p.v[i].header.ts.tv_sec;
-                     it2->second.downlink.push_back(1);
-                }
-            }
+            if (it->second.up_prev_sec  == (int)(p.header.ts.tv_sec)) it->second.uplink[it->second.uplink.size() - 1]++;
             else {
-                Pack_time[temp_ses].ip = p.v[i].ip;
-                Pack_time[temp_ses].uplink.push_back(1);
-                Pack_time[temp_ses].up_init_sec = p.v[i].header.ts.tv_sec;
-                Pack_time[temp_ses].up_prev_sec = p.v[i].header.ts.tv_sec;
+                it->second.up_prev_sec = p.header.ts.tv_sec;
+                it->second.uplink.push_back(1);
             }
         }
-
-
+        else if (it2 != Pack_time.end()) {
+            if (it2->second.up_init_sec == 0) it2->second.up_init_sec = p.header.ts.tv_sec;
+            if (p.header.ts.tv_sec > it2->second.down_prev_sec + 1 && it2->second.down_prev_sec != -1 ) {
+                int j;
+                for (j = 0; j < p.header.ts.tv_sec - it2->second.down_prev_sec  - 1; j++) {
+                   it2->second.downlink.push_back(0);
+                }
+                //it2->second.down_prev_sec = p.header.ts.tv_sec;
+            }
+            if (it2->second.down_prev_sec == (int)(p.header.ts.tv_sec)) {
+                it2->second.downlink[it2->second.downlink.size() - 1]++;
+            }
+            else {
+                 it2->second.down_prev_sec = p.header.ts.tv_sec;
+                 it2->second.downlink.push_back(1);
+            }
+        }
+        else {
+            Pack_time[temp_ses].ip = p.ip;
+            Pack_time[temp_ses].uplink.push_back(1);
+            Pack_time[temp_ses].up_init_sec = p.header.ts.tv_sec;
+            Pack_time[temp_ses].up_prev_sec = p.header.ts.tv_sec;
+        }
+    
 }
 
 void Statistic_analysis::print_map() {

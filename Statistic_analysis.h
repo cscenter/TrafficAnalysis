@@ -20,7 +20,7 @@ struct Packages {
 class Statistic_analysis {
     std::map<Session, Packages> Pack_time;
 public:
-    Statistic_analysis(const All_packets& p);
+    Statistic_analysis(const Split_packet& p);
     void print_map();
     void write_map();
 };
