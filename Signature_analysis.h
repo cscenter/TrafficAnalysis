@@ -15,7 +15,7 @@ public:
     //const Session&
     void FormPackDate(Session session, Split_packet pack);
 
-    int CheckDate(char *expr);
+    int CheckDate(const char *expr);
 };
 
 

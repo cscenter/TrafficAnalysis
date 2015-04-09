@@ -22,7 +22,7 @@ void PackData::FormPackDate(Session session, Split_packet pack) {
 }
 
 //EL const
-int PackData::CheckDate(char *expr) {
+int PackData::CheckDate(const char *expr) {
     int count = 0;
     int i;
     //const char *exp = (char *)expr;
