@@ -5,38 +5,42 @@
 
 
 //EL add private
-class PackData {
+class Pack_data {
 public:
     struct in_addr src;
-    std::vector<u_char*> UpLoad;
-    std::vector<u_char*> DownLoad;
+    std::vector<u_char*> upload;
+    std::vector<u_char*> download;
 
-    PackData();
-    //const Session&
-    void FormPackDate(Session session, Split_packet pack);
+    Pack_data();
 
-    int CheckDate(char *expr);
+    void form_pack_date(Session session, Split_packet pack);
+
+    int check_date(const char *expr);
+
+    void print_payload(int length, const u_char *payload);
 };
 
 
 //EL add private
 class Signature_analysis {
 
-    std::map<Session, PackData> Map;
+    std::map<Session, Pack_data> Map;
 
 public:
 
     Signature_analysis();
 
-    std::map<Session, PackData> GetMap() {
+    std::map<Session, Pack_data> get_map() {
         return Map;
     }
 
-    void PrintMap();
+    void print_map();
 
-    void FormMap(std::vector<Split_packet> Packets);
+    void form_map(std::vector<Split_packet> Packets);
 
-    Session GetSession(Split_packet pack);
+    void add_packet(Split_packet pack);
+
+    Session get_session(Split_packet pack);
 };
 
 #endif
