@@ -23,3 +23,14 @@ void Session::print_session(){
     cout << "Protocol   " << prot << endl;
     cout << endl;
 }
+
+void Session::session_reverse() {
+    in_addr tmp_ip;
+    u_short tmp_port;
+    tmp_ip = ip_src;
+    ip_src = ip_dst;
+    ip_dst = tmp_ip;
+    tmp_port = port_src;
+    port_src = port_dst;
+    port_dst = tmp_port;
+}
