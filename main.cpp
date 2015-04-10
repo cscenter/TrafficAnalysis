@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <iostream>
 #include <new>
 #include <stdlib.h>
@@ -23,8 +22,8 @@ int main(int argc, char **argv) {
             p = obj->start_sniff();
     }
     else if (argc > 2) {
-            fprintf(stderr, "error: unrecognized command-line options\n\n");
-            exit(EXIT_FAILURE);
+            cout << "error: unrecognized command-line options\n" << endl;
+            return 0;
     }
     else {
         Net_sniffer *obj = new Net_sniffer();
@@ -32,12 +31,11 @@ int main(int argc, char **argv) {
     }
 
     p.print_vector();
-        
+
     Signature_analysis* sig_analys = new Signature_analysis();
     sig_analys->FormMap(p.v);
     sig_analys->PrintMap();
-    //StatisticAnalysis * statAnalysis = new StatisticAnalysis(p.v);
-    printf("\nCapture complete.s\n");
-
+    //Statistic_analysis * stat_analysis = new StatisticAnalysis(p.v);
+    cout << "Capture complete" << endl;
     return 0;
 };

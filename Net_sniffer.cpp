@@ -2,6 +2,7 @@
 #include <iostream>
 #include <arpa/inet.h>
 #include <string>
+#include <time.h>
 #include <stdlib.h>
 #include "Net_sniffer.h"
 
@@ -24,11 +25,12 @@ Net_sniffer::Net_sniffer(char *device, char *protocol, int n) {
     num_packets = n;
 };
 
+
 All_packets Net_sniffer::start_sniff(){
 
     if ( dev == NULL) {
         // find a capture device if not specified on command-line
-        
+
         dev = pcap_lookupdev(errbuf);
         if (dev == NULL) {
             fprintf(stderr, "Couldn't find default device: %s\n",
@@ -146,6 +148,11 @@ bool Session::operator < (const Session & b) const {
     if (port_src != b.port_src) return port_src < b.port_src;
     if (port_dst != b.port_dst) return port_dst < b.port_dst;
     return protocol < b.protocol;
+}
+
+bool Session::is_alive() const {
+    time_t current_time = time(NULL); // current time in seconds
+    return current_time - time_of_last_packet <= time_to_live;
 }
 //operator<<
 void Session::print_session(){
