@@ -31,11 +31,11 @@ int main(int argc, char **argv) {
     }
 
     p.print_vector();
-        
+
     Signature_analysis* sig_analys = new Signature_analysis();
     sig_analys->FormMap(p.v);
     sig_analys->PrintMap();
-    Statistic_analysis * stat_analysis = new StatisticAnalysis(p.v);
+    //Statistic_analysis * stat_analysis = new StatisticAnalysis(p.v);
     cout << "Capture complete" << endl;
     return 0;
 };

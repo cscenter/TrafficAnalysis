@@ -14,10 +14,10 @@ struct Session {
     u_short port_dst;
     std::string prot;
     u_char protocol;
-    //time?
-
+    int time_to_live;
+    int time_of_last_packet;
+    bool is_alive() const;
     void print_session();
-
     //EL: move to cpp
     bool operator < (const Session & b) const;
 };
