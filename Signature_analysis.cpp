@@ -1,5 +1,5 @@
 #include <iostream>
-
+#include "Session.h"
 #include "Signature_analysis.h"
 
 using namespace std;
@@ -108,7 +108,7 @@ void Signature_analysis::form_map(vector<Split_packet> Packets) {
     }
 }
 
-void Signature_analysis::add_packet(Split_packet pack) {
+void Signature_analysis::add_packet(const Split_packet& pack) {
     Session session = get_session(pack);
     Map[session].form_pack_date(session, pack);
 }

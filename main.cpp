@@ -16,10 +16,10 @@ using namespace std;
 
 int main(int argc, char **argv) {
     char protocol[] = "ip";
-    All_packets p;
+    Working_classes wc;
     if (argc == 2) {
             Net_sniffer *obj = new Net_sniffer(argv[1], protocol, 40);
-            p = obj->start_sniff();
+            wc = obj->start_sniff();
     }
     else if (argc > 2) {
             cout << "error: unrecognized command-line options\n" << endl;
@@ -27,15 +27,13 @@ int main(int argc, char **argv) {
     }
     else {
         Net_sniffer *obj = new Net_sniffer();
-        p = obj->start_sniff();
+        wc = obj->start_sniff();
     }
 
-    p.print_vector();
 
-    Signature_analysis* sig_analys = new Signature_analysis();
-    sig_analys->FormMap(p.v);
-    sig_analys->PrintMap();
+    
     //Statistic_analysis * stat_analysis = new StatisticAnalysis(p.v);
+    wc.stat_analysator.print_map();
     cout << "Capture complete" << endl;
     return 0;
 };

@@ -1,10 +1,8 @@
 #include <iostream>
 #include <fstream>
-#include <map>
-#include <vector>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include <arpa/inet.h>
-#include <string>
-
 #include "Statistic_analysis.h"
 
 using namespace std;
@@ -12,14 +10,21 @@ using namespace std;
 Statistic_analysis::Statistic_analysis() {
     processed_sessions_counter = 0;
     process_interval = 10;
+    last_process_time = 0;
 }
 
+bool Packages::is_alive(int current_time) {
+    return current_time - last_packet_time() < time_to_live;
+}
+
+int Packages::last_packet_time() {
+        return (up_prev_sec > down_prev_sec) ? up_prev_sec : down_prev_sec;
+}
 
 void Statistic_analysis::add_packet(const Split_packet& p) {   //FILL MAP
-        time_t current_time = time(NULL); // current time in seconds
-        if (current_time - last_process_time > process_interval) {
-            process_dead_sessions();
-            last_process_time = current_time;
+        if (p.header.ts.tv_sec - last_process_time > process_interval) {
+            //process_dead_sessions(p.header.ts.tv_sec);
+            //last_process_time = p.header.ts.tv_sec;
         }
         Session temp_ses, temp_ses2;
         temp_ses.ip_src = p.ip.ip_src;
@@ -47,7 +52,7 @@ void Statistic_analysis::add_packet(const Split_packet& p) {   //FILL MAP
 
 
         if (it != Pack_time.end()) {
-            if (p.header.ts.tv_sec > it->second.up_prev_sec + 1 && it->second.up_prev_sec != -1 ) {
+                if (p.header.ts.tv_sec > it->second.up_prev_sec + 1 && it->second.up_prev_sec != -1 ) {
                 int j;
 
                 for (j = 0; j < p.header.ts.tv_sec - it->second.up_prev_sec  - 1; j++) {
@@ -88,16 +93,26 @@ void Statistic_analysis::add_packet(const Split_packet& p) {   //FILL MAP
 }
 
 void Statistic_analysis::print_map() {
-    cout << "MAP SIZE " << Pack_time.size();
+    ofstream out("mymap.txt");
+    out << "MAP SIZE " << Pack_time.size();
     map<Session, Packages>::iterator it;
     for(it = Pack_time.begin(); it != Pack_time.end(); it++) {
-        cout << "src_ip " << inet_ntoa(it->first.ip_src) << endl;
-        cout << "dst_ip " << inet_ntoa(it->first.ip_dst) << endl;
-        cout << "src_port " << ntohs(it->first.port_src) << endl;
-        cout << "dst_port " << ntohs(it->first.port_dst) << endl;
-        cout << it->second.uplink.size() << endl;
-        cout << it->second.downlink.size() << endl;
+        out << "src_ip " << inet_ntoa(it->first.ip_src) << endl;
+        out << "dst_ip " << inet_ntoa(it->first.ip_dst) << endl;
+        out << "src_port " << ntohs(it->first.port_src) << endl;
+        out << "dst_port " << ntohs(it->first.port_dst) << endl;
+        switch(it->first.protocol) {
+            case IPPROTO_TCP:
+                out << "TCP" << endl;
+                break;
+            case IPPROTO_UDP:
+                out << "UDP" << endl;
+                break;
+        }
+        out << it->second.uplink.size() << endl;
+        out << it->second.downlink.size() << endl;
     }
+    out.close();
 }
 
 void Statistic_analysis::dead_session_inform(Session ses) {
@@ -106,8 +121,6 @@ void Statistic_analysis::dead_session_inform(Session ses) {
     cout << "port src " << ntohs(ses.port_src);
     cout << " port dst " <<  ntohs(ses.port_dst) << endl;
     cout << "protocol " << ses.protocol << endl;
-    time_t current_time = time(NULL); // current time in seconds
-    cout << "time of last packet "<< ses.time_of_last_packet << " now is " << current_time << endl;
     cout << "IS DEAD" << endl;
 }
 
@@ -128,17 +141,18 @@ void Statistic_analysis::write_session_to_file(map<Session, Packages>::iterator 
 
 }
 
-void Statistic_analysis::process_dead_sessions() {
+void Statistic_analysis::process_dead_sessions(int current_time) {
     cout << "Starting_to_process..." << endl;
     cout << "Size of map before " << Pack_time.size() << endl;
-    map<Session, Packages>::iterator it;
-    for(it = Pack_time.begin(); it != Pack_time.end(); it++) {
-            if (!it->first.is_alive()) {
+    map<Session, Packages>::iterator it = Pack_time.begin();
+    while (it != Pack_time.end()) {
+            if (!it->second.is_alive(current_time)) {
                 dead_session_inform(it->first);
                 write_session_to_file(it);
-                Pack_time.erase(it);
+                Pack_time.erase(it++);
                 processed_sessions_counter++;
             }
+            else it++;
     }
     cout << "Size of map after " << Pack_time.size() << endl;
 }

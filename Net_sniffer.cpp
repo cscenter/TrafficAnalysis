@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include "Net_sniffer.h"
 
+
 using namespace std;
 
 Net_sniffer::Net_sniffer() {
@@ -26,7 +27,7 @@ Net_sniffer::Net_sniffer(char *device, char *protocol, int n) {
 };
 
 
-All_packets Net_sniffer::start_sniff(){
+Working_classes Net_sniffer::start_sniff(){
 
     if ( dev == NULL) {
         // find a capture device if not specified on command-line
@@ -51,13 +52,13 @@ All_packets Net_sniffer::start_sniff(){
     printf("Filter expression: %s\n\n\n", filter_exp);
 
     // open capture device
-    handle = pcap_open_live(dev, SNAP_LEN, 1, 1000, errbuf);
-    //handle = pcap_open_offline(dev, errbuf);
+    //handle = pcap_open_live(dev, SNAP_LEN, 1, 1000, errbuf);
+    handle = pcap_open_offline(dev, errbuf);
     if (handle == NULL) {
         fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
         exit(EXIT_FAILURE);
     }
-
+	/*
     // make sure we're capturing on an Ethernet device [2]
     if (pcap_datalink(handle) != DLT_EN10MB) {
         fprintf(stderr, "%s is not an Ethernet\n", dev);
@@ -77,10 +78,10 @@ All_packets Net_sniffer::start_sniff(){
             filter_exp, pcap_geterr(handle));
         exit(EXIT_FAILURE);
     }
+	*/
+    Working_classes p;
 
-    All_packets p;
-
-    pcap_loop(handle, num_packets, got_packet, (u_char *)(&p));
+    pcap_loop(handle, 0, got_packet, (u_char *)(&p));
 
     pcap_freecode(&fp);
     pcap_close(handle);
@@ -88,78 +89,13 @@ All_packets Net_sniffer::start_sniff(){
 };
 
 void Net_sniffer::got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
-    All_packets * pack = (All_packets *) args;
+    Working_classes * wc = (Working_classes *) args;
     Split_packet value;
     Parse_packet *obj = new Parse_packet();
     value = obj->Parse(header, packet);
     if (!value.is_broken) {
-        pack -> v.push_back(value);
+        wc->sig_analysator.add_packet(value);
+        wc->stat_analysator.add_packet(value);
     }
 }
 
-void All_packets::print_vector() {
-    int i;
-    Split_packet s_pack;
-    for (i = 0; i < v.size(); i++) {
-        s_pack = v[i];
-        printf("From: %s\n", inet_ntoa(s_pack.ip.ip_src));
-        printf("To: %s\n", inet_ntoa(s_pack.ip.ip_dst));
-
-        switch(s_pack.ip.ip_p) {
-            case IPPROTO_TCP:
-                printf("Protocol: TCP\n");
-
-                if (s_pack.size_tcp < 20) {
-                    printf("Invalid TCP header length: %u bytes\n", s_pack.size_tcp);
-                }
-                printf("Src port: %d\n", ntohs(s_pack.tcp.th_sport));
-                printf("Dst port: %d\n", ntohs(s_pack.tcp.th_dport));
-
-                if (s_pack.size_payload > 0) {
-                    printf("Payload (%d bytes):\n\n\n", s_pack.size_payload);
-                }
-                else {
-                cout << endl << endl;
-                }
-                break;
-            case IPPROTO_UDP:
-                printf("Protocol: UDP\n");
-                s_pack.size_udp = UDP_LENGTH;
-
-                if (s_pack.size_udp < 8) {
-                    printf("Invalid UDP header length: %u bytes\n", s_pack.size_udp);
-                }
-                printf("Src port: %d\n", ntohs(s_pack.udp.s_port));
-                printf("Dst port: %d\n", ntohs(s_pack.udp.d_port));
-
-                if (s_pack.size_payload > 0) {
-                    printf("Payload (%d bytes):\n\n\n", s_pack.size_payload);
-                }
-                break;
-            default:
-                printf("Protocol: %c\n\n\n", s_pack.ip.ip_p );
-        }
-    }
-};
-
-bool Session::operator < (const Session & b) const {
-    if (ip_src.s_addr != b.ip_src.s_addr) return ip_src.s_addr < b.ip_src.s_addr;
-    if (ip_dst.s_addr != b.ip_dst.s_addr) return ip_dst.s_addr < b.ip_dst.s_addr;
-    if (port_src != b.port_src) return port_src < b.port_src;
-    if (port_dst != b.port_dst) return port_dst < b.port_dst;
-    return protocol < b.protocol;
-}
-
-bool Session::is_alive() const {
-    time_t current_time = time(NULL); // current time in seconds
-    return current_time - time_of_last_packet <= time_to_live;
-}
-//operator<<
-void Session::print_session(){
-    cout << "From ip:   " << inet_ntoa(ip_src) << endl;
-    cout << "To ip:     " << inet_ntoa(ip_dst) << endl;
-    cout << "From port: " << ntohs(port_src) << endl;
-    cout << "To port:   " << ntohs(port_dst) << endl;
-    cout << "Protocol   " << prot << endl;
-    cout << endl;
-}

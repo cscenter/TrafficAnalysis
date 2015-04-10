@@ -1,8 +1,13 @@
 #ifndef SIGNATURE_ANALISATOR_H
 #define SIGNATURE_ANALISATOR_H
 #include <map>
-#include "Net_sniffer.h"
-
+//#include "Net_sniffer.h"
+#include "Session.h"
+#include <vector>
+#include <pcap.h>
+#include <netinet/in.h>
+#include "Pack_headers_struct.h"
+#include "Parse_packet.h"
 
 //EL add private
 class Pack_data {
@@ -20,10 +25,9 @@ public:
     void print_payload(int length, const u_char *payload);
 };
 
-
-//EL add private
 class Signature_analysis {
-
+private:
+    
     std::map<Session, Pack_data> Map;
 
 public:
@@ -38,7 +42,7 @@ public:
 
     void form_map(std::vector<Split_packet> Packets);
 
-    void add_packet(Split_packet pack);
+    void add_packet(const Split_packet& pack);
 
     Session get_session(Split_packet pack);
 };

@@ -2,33 +2,9 @@
 #define NET_SNIFFER_H
 #include <vector>
 #include <string>
-#include "Parse_packet.h"
-
-using namespace std;
+#include "Working_classes.h"
 
 
-struct Session {
-    struct  in_addr ip_src;
-    struct  in_addr ip_dst;
-    u_short port_src;
-    u_short port_dst;
-    std::string prot;
-    u_char protocol;
-    int time_to_live;
-    int time_of_last_packet;
-    bool is_alive() const;
-    void print_session();
-    //EL: move to cpp
-    bool operator < (const Session & b) const;
-};
-
-
-
-struct All_packets {
-     std::vector<Split_packet> v;
-
-     void print_vector();
-};
 
 class Net_sniffer {
 private:
@@ -45,7 +21,7 @@ public:
 
     Net_sniffer(char *device, char *protocol, int n);
 
-    All_packets start_sniff();
+    Working_classes start_sniff();
 
     //EL move to cpp
     static void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
