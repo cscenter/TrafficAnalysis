@@ -18,6 +18,8 @@ struct Session {
     void print_session();
     //EL: move to cpp
     bool operator < (const Session & b) const;
+
+    void session_reverse();
 };
 
 #endif
