@@ -7,38 +7,38 @@ using namespace std;
 Pack_data::Pack_data() {
 }
 
-
-void Pack_data::form_pack_date(Session session, Split_packet pack) {
-    src = session.ip_src;     // бред, надо перепроверить
+void Pack_data::to_upload(Split_packet pack) {
     u_char *value = new u_char[pack.size_payload];
     memmove(value, pack.payload, pack.size_payload);
+    upload.push_back(value);
+}
 
-    if (src.s_addr == pack.ip.ip_src.s_addr) {
-        upload.push_back(value);
-    }
-    else {
-        download.push_back(value);
-    }
+void Pack_data::to_download(Split_packet pack) {
+    u_char *value = new u_char[pack.size_payload];
+    memmove(value, pack.payload, pack.size_payload);
+    download.push_back(value);
 }
 
 
 int Pack_data::check_date(const char *expr) {
     int count = 0;
     int i;
+    cout << "UpLoad " << upload.size() << endl;
     for (i = 0; i < upload.size(); i++) {
         const char *payload = (char *)upload[i];
         if ( strstr(payload, expr) != NULL) {
             count++;
         }
-        print_payload(strlen(payload), upload[i]);
+        //print_payload(strlen(payload), upload[i]);
         payload = NULL;
     }
+    cout << "DownLoad " << download.size() << endl;
     for (i = 0; i < download.size(); i++) {
         const char *payload = (char *)download[i];
         if ( strstr(payload, expr) != NULL ) {
             count++;
         }
-        print_payload(strlen(payload), download[i]);
+        //print_payload(strlen(payload), download[i]);
         payload = NULL;
     }
     if (count) {
@@ -47,20 +47,23 @@ int Pack_data::check_date(const char *expr) {
     return 0;
 }
 
-void Pack_data::print_payload(int length, const u_char *payload) {
+void Pack_data::print_payload(int length, const u_char *payload) { // вывод полезной нагрузки пакетов
     int i;
     while(length > 0) {
-        int T = 40;
-        if ( length < T) {
+        int T = 100; // длина выводимой строки
+        if (length < T) {
             for (i = 0; i < length; i++) {
                 if (isprint(*payload)) {
-                cout << *payload;
+                    cout << *payload;
                 }
                 else {
                     cout << "." ;
                 }
-                payload++; // problem
+                payload++;
+                length--;
             }
+            T = 0;
+            cout << endl;
         }
         length -= T;
         while (T > 0) {
@@ -75,6 +78,7 @@ void Pack_data::print_payload(int length, const u_char *payload) {
         }
         cout << endl;
     }
+    cout << endl;
 }
 
 
@@ -102,15 +106,46 @@ void Signature_analysis::print_map() {
 
 void Signature_analysis::form_map(vector<Split_packet> Packets) {
     int i;
+    map<Session, Pack_data>::iterator iter;
     for (i = 0; i < Packets.size(); i++) {
         Session session = get_session(Packets[i]);
-        Map[session].form_pack_date(session, Packets[i]);
+        iter = Map.find(session);
+        if (iter != Map.end()) {
+            Map[session].to_upload(Packets[i]);
+        }
+        else {
+            session.session_reverse(); // если уже есть -> добавить, если нет -> создать
+            iter = Map.find(session);
+            if (iter != Map.end()) {
+                Map[session].to_download(Packets[i]);
+            }
+            else {
+                session.session_reverse(); // вопрос
+                Map[session].to_upload(Packets[i]);
+            }
+        }
     }
+    //cout << Map.size() << endl;
 }
 
 void Signature_analysis::add_packet(const Split_packet& pack) {
     Session session = get_session(pack);
-    Map[session].form_pack_date(session, pack);
+    map<Session, Pack_data>::iterator iter;
+    iter = Map.find(session);
+    if (iter != Map.end()) {
+        Map[session].to_upload(pack);
+    }
+    else {
+        session.session_reverse(); // если уже есть -> добавить, если нет -> создать
+        iter = Map.find(session);
+        if (iter != Map.end()) {
+            Map[session].to_download(pack);
+        }
+        else {
+            session.session_reverse();
+            Map[session].to_upload(pack);
+        }
+    }
 }
 
 Session Signature_analysis::get_session(Split_packet pack) {
