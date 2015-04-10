@@ -29,11 +29,9 @@ int main(int argc, char **argv) {
         Net_sniffer *obj = new Net_sniffer();
         wc = obj->start_sniff();
     }
-
-
-    
     //Statistic_analysis * stat_analysis = new StatisticAnalysis(p.v);
-    wc.stat_analysator.print_map();
+    //wc.stat_analysator.print_map();
+    wc.sig_analysator.print_map();
     cout << "Capture complete" << endl;
     return 0;
 };
