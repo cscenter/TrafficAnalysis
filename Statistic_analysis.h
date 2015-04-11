@@ -36,11 +36,13 @@ class Statistic_analysis {
     std::map<Session, Packages> Pack_time;
 public:
     Statistic_analysis();
+    ~Statistic_analysis();
     Statistic_analysis(int process_interval);
     void write_session_to_file(std::map<Session, Packages>::iterator it);
     void process_dead_sessions(int current_time);
     void add_packet(const Split_packet& p);
     void print_map();
+    void process_all_sessions();
     void dead_session_inform(Session ses);
     void write_map();
 };

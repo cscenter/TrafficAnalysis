@@ -2,16 +2,52 @@
 #include <fstream>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <unistd.h>
 #include <arpa/inet.h>
+#include <sys/stat.h>
 #include "Statistic_analysis.h"
 
 using namespace std;
 
+
 Statistic_analysis::Statistic_analysis() {
     processed_sessions_counter = 0;
-    process_interval = 10;
+    process_interval = 5;
     last_process_time = 0;
+    mkdir("result", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    cout << get_current_dir_name() << endl;
 }
+
+void Statistic_analysis::process_dead_sessions(int current_time) {
+    //cout << "Starting_to_process..." << endl;
+    //cout << "Size of map before " << Pack_time.size() << endl;
+    map<Session, Packages>::iterator it = Pack_time.begin();
+    while (it != Pack_time.end()) {
+            if (!it->second.is_alive(current_time)) {
+                dead_session_inform(it->first);
+                write_session_to_file(it);
+                Pack_time.erase(it++);
+                processed_sessions_counter++;
+            }
+            else it++;
+    }
+    //cout << "Size of map after " << Pack_time.size() << endl;
+}
+
+
+void Statistic_analysis::process_all_sessions() {
+    //cout << "Starting_to_process..." << endl;
+    //cout << "Size of map before " << Pack_time.size() << endl;
+    map<Session, Packages>::iterator it = Pack_time.begin();
+    while (it != Pack_time.end()) {
+                write_session_to_file(it);
+                Pack_time.erase(it++);
+                processed_sessions_counter++;
+            
+    }
+    //cout << "Size of map after " << Pack_time.size() << endl;
+}
+
 
 bool Packages::is_alive(int current_time) {
     return current_time - last_packet_time() < time_to_live;
@@ -21,10 +57,14 @@ int Packages::last_packet_time() {
         return (up_prev_sec > down_prev_sec) ? up_prev_sec : down_prev_sec;
 }
 
+Statistic_analysis::~Statistic_analysis() {
+	cout << " destructor " << endl;
+}
+
 void Statistic_analysis::add_packet(const Split_packet& p) {   //FILL MAP
         if (p.header.ts.tv_sec - last_process_time > process_interval) {
-            //process_dead_sessions(p.header.ts.tv_sec);
-            //last_process_time = p.header.ts.tv_sec;
+            process_dead_sessions(p.header.ts.tv_sec);
+            last_process_time = p.header.ts.tv_sec;
         }
         Session temp_ses, temp_ses2;
         temp_ses.ip_src = p.ip.ip_src;
@@ -58,12 +98,12 @@ void Statistic_analysis::add_packet(const Split_packet& p) {   //FILL MAP
                 for (j = 0; j < p.header.ts.tv_sec - it->second.up_prev_sec  - 1; j++) {
                     it->second.uplink.push_back(0);
                 }
-                // it->second.up_prev_sec = p.header.ts.tv_sec;
+                it->second.up_prev_sec = p.header.ts.tv_sec;
             }
-            if (it->second.up_prev_sec  == (int)(p.header.ts.tv_sec)) it->second.uplink[it->second.uplink.size() - 1]++;
+            if (it->second.up_prev_sec  == (int)(p.header.ts.tv_sec)) it->second.uplink[it->second.uplink.size() - 1] += p.size_payload;
             else {
                 it->second.up_prev_sec = p.header.ts.tv_sec;
-                it->second.uplink.push_back(1);
+                it->second.uplink.push_back(p.size_payload);
             }
         }
         else if (it2 != Pack_time.end()) {
@@ -76,16 +116,16 @@ void Statistic_analysis::add_packet(const Split_packet& p) {   //FILL MAP
                 //it2->second.down_prev_sec = p.header.ts.tv_sec;
             }
             if (it2->second.down_prev_sec == (int)(p.header.ts.tv_sec)) {
-                it2->second.downlink[it2->second.downlink.size() - 1]++;
+                it2->second.downlink[it2->second.downlink.size() - 1] += p.size_payload;
             }
             else {
                  it2->second.down_prev_sec = p.header.ts.tv_sec;
-                 it2->second.downlink.push_back(1);
+                 it2->second.downlink.push_back(p.size_payload);
             }
         }
         else {
             Pack_time[temp_ses].ip = p.ip;
-            Pack_time[temp_ses].uplink.push_back(1);
+            Pack_time[temp_ses].uplink.push_back(p.size_payload);
             Pack_time[temp_ses].up_init_sec = p.header.ts.tv_sec;
             Pack_time[temp_ses].up_prev_sec = p.header.ts.tv_sec;
         }
@@ -93,7 +133,7 @@ void Statistic_analysis::add_packet(const Split_packet& p) {   //FILL MAP
 }
 
 void Statistic_analysis::print_map() {
-    ofstream out("mymap.txt");
+    ofstream out("result/mymap.txt");
     out << "MAP SIZE " << Pack_time.size();
     map<Session, Packages>::iterator it;
     for(it = Pack_time.begin(); it != Pack_time.end(); it++) {
@@ -117,44 +157,34 @@ void Statistic_analysis::print_map() {
 
 void Statistic_analysis::dead_session_inform(Session ses) {
     cout << "Session from ip " << inet_ntoa(ses.ip_src);
-    cout << " to " << inet_ntoa(ses.ip_dst) << endl;
-    cout << "port src " << ntohs(ses.port_src);
-    cout << " port dst " <<  ntohs(ses.port_dst) << endl;
-    cout << "protocol " << ses.protocol << endl;
-    cout << "IS DEAD" << endl;
+    cout << " to " << inet_ntoa(ses.ip_dst);
+    cout << "  IS DEAD" << endl << endl;
+    
 }
 
 void Statistic_analysis::write_session_to_file(map<Session, Packages>::iterator it) {
-    string uplink_file_name = "ses_" + to_string(processed_sessions_counter) + "_uplink.txt";
+    if (it->second.downlink.size() < 3 || it->second.uplink.size() < 3) { return; }
+    string uplink_file_name = "result/ses_" + to_string(processed_sessions_counter) + "_uplink.txt";
     ofstream out_up(uplink_file_name);
-    cout << "session number " << processed_sessions_counter << " ip_src " << inet_ntoa(it->first.ip_src) << endl;
+    
+    //cout << "session number " << processed_sessions_counter << " ip_src " << inet_ntoa(it->first.ip_src) << endl;
+    out_up << inet_ntoa(it->first.ip_src);
+    out_up << " to " << inet_ntoa(it->first.ip_dst);
+    out_up << "  IS DEAD" << endl << endl;
+    out_up << "port src " << ntohs(it->first.port_src);
+    out_up << " port dst " <<  ntohs(it->first.port_dst) << endl;
+    
     for (int i = 0; i < it->second.uplink.size(); i++) {
         out_up << i << " " << it->second.uplink[i] << endl;
     }
     out_up.close();
-    string downlink_file_name = "ses_" + to_string(processed_sessions_counter) + "_downlink.txt";
+    string downlink_file_name = "result/ses_" + to_string(processed_sessions_counter) + "_downlink.txt";
     ofstream out_down(downlink_file_name);
     for (int i = 0; i < it->second.downlink.size(); i++) {
         out_down << i << " " << it->second.downlink[i] << endl;
     }
     out_down.close();
 
-}
-
-void Statistic_analysis::process_dead_sessions(int current_time) {
-    cout << "Starting_to_process..." << endl;
-    cout << "Size of map before " << Pack_time.size() << endl;
-    map<Session, Packages>::iterator it = Pack_time.begin();
-    while (it != Pack_time.end()) {
-            if (!it->second.is_alive(current_time)) {
-                dead_session_inform(it->first);
-                write_session_to_file(it);
-                Pack_time.erase(it++);
-                processed_sessions_counter++;
-            }
-            else it++;
-    }
-    cout << "Size of map after " << Pack_time.size() << endl;
 }
 
 void Statistic_analysis::write_map() {

@@ -52,8 +52,8 @@ Working_classes Net_sniffer::start_sniff(){
     printf("Filter expression: %s\n\n\n", filter_exp);
 
     // open capture device
-    //handle = pcap_open_live(dev, SNAP_LEN, 1, 1000, errbuf);
-    handle = pcap_open_offline(dev, errbuf);
+    handle = pcap_open_live(dev, SNAP_LEN, 1, 1000, errbuf);
+    //handle = pcap_open_offline(dev, errbuf);
     if (handle == NULL) {
         fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
         exit(EXIT_FAILURE);

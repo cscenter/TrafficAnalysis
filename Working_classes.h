@@ -4,9 +4,14 @@
 #include "Signature_analysis.h"
 #include "Statistic_analysis.h"
 
+
+
 struct Working_classes {
     Signature_analysis sig_analysator;
     Statistic_analysis stat_analysator;
+public:    
+    Working_classes();
+    static void sigfunc(int sig);
 };
 
 #endif
