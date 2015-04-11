@@ -7,10 +7,10 @@ main.o: main.cpp Net_sniffer.h Statistic_analysis.h Parse_packet.h Signature_ana
 Statistic_analysis.o: Statistic_analysis.cpp Statistic_analysis.h 
 	g++ -c Statistic_analysis.cpp -std=c++11
 
-Class_parse_packet.o: Parse_packet.cpp Parse_packet.h
+Parse_packet.o: Parse_packet.cpp Parse_packet.h
 	g++ -c Parse_packet.cpp -std=c++11
 
-SignatureAnalisator.o: Signature_analysis.c Signature_analysis.h
+SignatureAnalysis.o: Signature_analysis.c Signature_analysis.h
 	g++ -c Signature_analysis.c -std=c++11     
 
 Net_sniffer.o: Net_sniffer.cpp Net_sniffer.h
