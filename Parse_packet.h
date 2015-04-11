@@ -8,6 +8,11 @@
 
 #include "Pack_headers_struct.h"
 
+//EL хорошо бы совместить эти оба класса в один, чтобы поля хранились 
+//EL вместе с методами, которые с ними работают
+
+//EL нужны деструкторы! есть new, но нет delete => memory leak
+
 struct Split_packet {
     struct pcap_pkthdr header;
     struct sniff_ethernet ethernet;

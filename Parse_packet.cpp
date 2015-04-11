@@ -15,6 +15,9 @@ Split_packet Parse_packet::Parse(const struct pcap_pkthdr *head, const u_char *p
         s_pack.is_broken = true;
         return s_pack;
     }
+
+    //EL minor можно повторяющийся код написать один раз, например,
+    //вынести его в отдельную функцию
     switch(s_pack.ip.ip_p) {
         case IPPROTO_TCP:
             s_pack.is_broken = false;
@@ -46,5 +49,7 @@ Split_packet Parse_packet::Parse(const struct pcap_pkthdr *head, const u_char *p
             s_pack.is_broken = true;
             return s_pack;
     }
+
+    // EL лишнее копирование
     return s_pack;
 };

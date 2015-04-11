@@ -33,16 +33,20 @@ class Statistic_analysis {
     int processed_sessions_counter;
     int process_interval;
     int last_process_time;
+    //EL поля с маленькой буквы
     std::map<Session, Packages> Pack_time;
 public:
     Statistic_analysis();
     ~Statistic_analysis();
     Statistic_analysis(int process_interval);
+    //EL параметры этого метода не должны зависеть 
+    //от метода хранения объектов в классе
     void write_session_to_file(std::map<Session, Packages>::iterator it);
     void process_dead_sessions(int current_time);
     void add_packet(const Split_packet& p);
     void print_map();
     void process_all_sessions();
+    //EL const&
     void dead_session_inform(Session ses);
     void write_map();
 };

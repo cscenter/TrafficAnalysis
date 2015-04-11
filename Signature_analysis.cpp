@@ -8,6 +8,7 @@ Pack_data::Pack_data() {
 }
 
 void Pack_data::to_upload(Split_packet pack) {
+    //EL где деструктор?
     u_char *value = new u_char[pack.size_payload];
     memmove(value, pack.payload, pack.size_payload);
     upload.push_back(value);
@@ -23,6 +24,7 @@ void Pack_data::to_download(Split_packet pack) {
 int Pack_data::check_date(const char *expr) {
     int count = 0;
     int i;
+    //EL minor убрать дублирование кода
     cout << "UpLoad " << upload.size() << endl;
     for (i = 0; i < upload.size(); i++) {
         const char *payload = (char *)upload[i];
@@ -86,12 +88,15 @@ Signature_analysis::Signature_analysis() {
 }
 
 void Signature_analysis::print_map() {
+    //EL в 11 стандарте есть auto
     map<Session, Pack_data>::iterator iter;
     iter = Map.begin();
     while(iter != Map.end()) {
         Session session = iter->first;
         session.print_session();
         Pack_data p_date = iter->second;
+
+        //EL вывод на экран и принятие решения по сессии --- это совсем разные вещи
         char expr[] = "HTTP/1.1";
         int answer = p_date.check_date(expr);
         if (answer) {
@@ -129,6 +134,7 @@ void Signature_analysis::form_map(vector<Split_packet> Packets) {
 }
 
 void Signature_analysis::add_packet(const Split_packet& pack) {
+    //EL minor хорошо бы утсранить 2 find'а
     Session session = get_session(pack);
     map<Session, Pack_data>::iterator iter;
     iter = Map.find(session);

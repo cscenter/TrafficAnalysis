@@ -18,7 +18,8 @@ Net_sniffer::Net_sniffer() {
 
 
 Net_sniffer::Net_sniffer(char *device, char *protocol, int n) {
-    //EL change to static arrays
+    //EL change to static arrays или как минимум надо память освобождать
+    //классу нужен деструктор
     dev = (char *) malloc((sizeof(device)));
     strcpy(dev, device);
     filter_exp = (char *) malloc((sizeof(protocol)));
@@ -58,6 +59,7 @@ Working_classes Net_sniffer::start_sniff(){
         fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
         exit(EXIT_FAILURE);
     }
+    //EL сделать два варианта запуска без переписывания программмы: из файла или из устройства
 	/*
     // make sure we're capturing on an Ethernet device [2]
     if (pcap_datalink(handle) != DLT_EN10MB) {
@@ -79,6 +81,9 @@ Working_classes Net_sniffer::start_sniff(){
         exit(EXIT_FAILURE);
     }
 	*/
+
+    //EL не нужно лишних копирования при возврате этой переменной
+    //EL надо передавать указатель из main
     Working_classes p;
 
     pcap_loop(handle, 0, got_packet, (u_char *)(&p));
@@ -90,8 +95,10 @@ Working_classes Net_sniffer::start_sniff(){
 
 void Net_sniffer::got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
     Working_classes * wc = (Working_classes *) args;
+    //EL классы должны быть названы существительными, например, PacketParser
     Split_packet value;
     Parse_packet *obj = new Parse_packet();
+    //EL нет смысла делать лишние копирования
     value = obj->Parse(header, packet);
     if (!value.is_broken) {
         wc->sig_analysator.add_packet(value);

@@ -40,9 +40,9 @@ void Statistic_analysis::process_all_sessions() {
     //cout << "Size of map before " << Pack_time.size() << endl;
     map<Session, Packages>::iterator it = Pack_time.begin();
     while (it != Pack_time.end()) {
-                write_session_to_file(it);
-                Pack_time.erase(it++);
-                processed_sessions_counter++;
+        write_session_to_file(it);
+        Pack_time.erase(it++);
+        processed_sessions_counter++;
             
     }
     //cout << "Size of map after " << Pack_time.size() << endl;
@@ -66,6 +66,7 @@ void Statistic_analysis::add_packet(const Split_packet& p) {   //FILL MAP
             process_dead_sessions(p.header.ts.tv_sec);
             last_process_time = p.header.ts.tv_sec;
         }
+        //EL может сделать конструктор у Session(const Packet&)
         Session temp_ses, temp_ses2;
         temp_ses.ip_src = p.ip.ip_src;
         temp_ses.ip_dst = p.ip.ip_dst;
@@ -92,6 +93,7 @@ void Statistic_analysis::add_packet(const Split_packet& p) {   //FILL MAP
 
 
         if (it != Pack_time.end()) {
+            //EL из за длинных названий тяжело читать
                 if (p.header.ts.tv_sec > it->second.up_prev_sec + 1 && it->second.up_prev_sec != -1 ) {
                 int j;
 
