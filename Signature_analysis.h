@@ -24,9 +24,9 @@ public:
     Pack_data();
 
     //EL лучше все передавть по const &
-    void to_upload(Split_packet pack);
+    void to_upload(Packet pack);
 
-    void to_download(Split_packet pack);
+    void to_download(Packet pack);
     //EL date значит день
     int check_date(const char *expr);
 
@@ -41,7 +41,7 @@ class Signature_analysis {
     std::map<Session, Pack_data> Map;
     //EL может вернуть & или даже const?
     //EL может написать const у метода
-    Session get_session(Split_packet pack);
+    //Session get_session(Split_packet pack);
 
 public:
 
@@ -55,9 +55,9 @@ public:
     void print_map();
 
     //EL зачем на стеке копия?
-    void form_map(std::vector<Split_packet> Packets);
+    //void form_map(std::vector<Split_packet> Packets);
 
-    void add_packet(const Split_packet& pack);
+    void add_packet(const Packet& pack);
 
 };
 
