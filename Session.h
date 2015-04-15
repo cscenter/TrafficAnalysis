@@ -2,7 +2,8 @@
 #define SESSION_H
 #include <pcap.h>
 #include <string>
-#include "Parse_packet.h"
+#include <netinet/in.h>
+//#include "Parse_packet.h"
 
 
 struct Session {
