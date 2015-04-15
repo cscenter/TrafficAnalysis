@@ -7,16 +7,16 @@ using namespace std;
 Pack_data::Pack_data() {
 }
 
-void Pack_data::to_upload(Split_packet pack) {
+void Pack_data::to_upload(Packet pack) {
     //EL где деструктор?
-    u_char *value = new u_char[pack.size_payload];
-    memmove(value, pack.payload, pack.size_payload);
+    u_char *value = new u_char[pack.get_size_payload()];
+    memmove(value, pack.get_pload(), pack.get_size_payload());
     upload.push_back(value);
 }
 
-void Pack_data::to_download(Split_packet pack) {
-    u_char *value = new u_char[pack.size_payload];
-    memmove(value, pack.payload, pack.size_payload);
+void Pack_data::to_download(Packet pack) {
+    u_char *value = new u_char[pack.get_size_payload()];
+    memmove(value, pack.get_pload(), pack.get_size_payload());
     download.push_back(value);
 }
 
@@ -109,7 +109,7 @@ void Signature_analysis::print_map() {
     }
 }
 
-void Signature_analysis::form_map(vector<Split_packet> Packets) {
+/*void Signature_analysis::form_map(vector<Split_packet> Packets) {
     int i;
     map<Session, Pack_data>::iterator iter;
     for (i = 0; i < Packets.size(); i++) {
@@ -131,46 +131,29 @@ void Signature_analysis::form_map(vector<Split_packet> Packets) {
         }
     }
     //cout << Map.size() << endl;
-}
+}*/
 
-void Signature_analysis::add_packet(const Split_packet& pack) {
+void Signature_analysis::add_packet(const Packet& pack) {
     //EL minor хорошо бы утсранить 2 find'а
-    Session session = get_session(pack);
+    Session *session = new Session();
+    pack.get_session(*session);
     map<Session, Pack_data>::iterator iter;
-    iter = Map.find(session);
+    iter = Map.find(*session);
     if (iter != Map.end()) {
-        Map[session].to_upload(pack);
+        Map[*session].to_upload(pack);
     }
     else {
-        session.session_reverse(); // если уже есть -> добавить, если нет -> создать
-        iter = Map.find(session);
+        session->session_reverse(); // если уже есть -> добавить, если нет -> создать
+        iter = Map.find(*session);
         if (iter != Map.end()) {
-            Map[session].to_download(pack);
+            Map[*session].to_download(pack);
         }
         else {
-            session.session_reverse();
-            Map[session].to_upload(pack);
+            session->session_reverse();
+            Map[*session].to_upload(pack);
         }
     }
 }
 
-Session Signature_analysis::get_session(Split_packet pack) {
-    Session session;
-    session.ip_src = pack.ip.ip_src;
-    session.ip_dst = pack.ip.ip_dst;
-    session.protocol = pack.ip.ip_p;
-    switch(pack.ip.ip_p) {
-        case IPPROTO_TCP:
-            session.port_src = pack.tcp.th_sport;
-            session.port_dst = pack.tcp.th_dport;
-            session.prot = "TCP";
-            break;
-        case IPPROTO_UDP:
-            session.port_src = pack.udp.s_port;
-            session.port_dst = pack.udp.d_port;
-            session.prot = "UDP";
-            break;
-    }
-    return session;
-}
+
 
