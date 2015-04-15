@@ -2,54 +2,73 @@
 
 using namespace std;
 
-Parse_packet::Parse_packet() {
+Packet::Packet() {
 };
 
-Split_packet Parse_packet::Parse(const struct pcap_pkthdr *head, const u_char *packet) {
-    Split_packet s_pack;
-    s_pack.header = *head;
-    s_pack.ethernet = *(sniff_ethernet*)packet;
-    s_pack.ip = *(sniff_ip *)(packet + SIZE_ETHERNET);
-    s_pack.size_ip = (((s_pack.ip).ip_vhl) & 0x0f)*4;
-    if (s_pack.size_ip < 20) {
-        s_pack.is_broken = true;
-        return s_pack;
+void Packet::Parse(const struct pcap_pkthdr *head, const u_char *packet) {
+    //Split_packet s_pack;
+    header = *head;
+    ethernet = *(sniff_ethernet*)packet;
+    ip = *(sniff_ip *)(packet + SIZE_ETHERNET);
+    size_ip = (((ip).ip_vhl) & 0x0f)*4;
+    if (size_ip < 20) {
+        is_broken = true;
+        return; //s_pack;
     }
 
     //EL minor можно повторяющийся код написать один раз, например,
     //вынести его в отдельную функцию
-    switch(s_pack.ip.ip_p) {
+    switch(ip.ip_p) {
         case IPPROTO_TCP:
-            s_pack.is_broken = false;
-            s_pack.tcp = *(struct sniff_tcp*)(packet + SIZE_ETHERNET + s_pack.size_ip);
-            s_pack.size_tcp = (((s_pack.tcp).th_offx2 & 0xf0) >> 4) * 4;
+            is_broken = false;
+            tcp = *(sniff_tcp*)(packet + SIZE_ETHERNET + size_ip);
+            size_tcp = (((tcp).th_offx2 & 0xf0) >> 4) * 4;
 
-            if (s_pack.size_tcp < 20) {
-                s_pack.is_broken = true;
-                return s_pack;
+            if (size_tcp < 20) {
+                is_broken = true;
+                return; // s_pack;
             }
-            s_pack.size_payload = ntohs(s_pack.ip.ip_len) - (s_pack.size_ip + s_pack.size_tcp);
-            s_pack.payload = new u_char[s_pack.size_payload];
-            memmove(s_pack.payload, ( (u_char *)(packet + SIZE_ETHERNET + s_pack.size_ip + s_pack.size_tcp) ), s_pack.size_payload);
+            size_payload = ntohs(ip.ip_len) - (size_ip + size_tcp);
+            payload = new u_char[size_payload];
+            memmove(payload, ( (u_char *)(packet + SIZE_ETHERNET + size_ip + size_tcp) ), size_payload);
             break;
         case IPPROTO_UDP:
-            s_pack.is_broken = false;
-            s_pack.udp = *(struct sniff_udp*)(packet + SIZE_ETHERNET + s_pack.size_ip); //как-то нужно ведь смотреть длину заголовка
-            s_pack.size_udp = UDP_LENGTH;
+            is_broken = false;
+            udp = *(sniff_udp*)(packet + SIZE_ETHERNET + size_ip); //как-то нужно ведь смотреть длину заголовка
+            size_udp = UDP_LENGTH;
 
-            if (s_pack.size_udp < 8) {
-                s_pack.is_broken = true;
-                return s_pack;
+            if (size_udp < 8) {
+                is_broken = true;
+                return; // s_pack;
             }
-            s_pack.size_payload = ntohs(s_pack.ip.ip_len) - (s_pack.size_ip + s_pack.size_udp);
-            s_pack.payload = new u_char[s_pack.size_payload];
-            memmove(s_pack.payload,(u_char *)(packet + SIZE_ETHERNET + s_pack.size_ip + s_pack.size_udp), s_pack.size_payload);
+            size_payload = ntohs(ip.ip_len) - (size_ip + size_udp);
+            payload = new u_char[size_payload];
+            memmove(payload,(u_char *)(packet + SIZE_ETHERNET + size_ip + size_udp), size_payload);
             break;
         default:
-            s_pack.is_broken = true;
-            return s_pack;
+            is_broken = true;
+            return; // s_pack;
     }
 
     // EL лишнее копирование
-    return s_pack;
+    return; //s_pack;
 };
+
+void Packet::get_session(Session& session)const {
+    session.ip_src = ip.ip_src;
+    session.ip_dst = ip.ip_dst;
+    session.protocol = ip.ip_p;
+    switch(ip.ip_p) {
+        case IPPROTO_TCP:
+            session.port_src = tcp.th_sport;
+            session.port_dst = tcp.th_dport;
+            session.prot = "TCP";
+            break;
+        case IPPROTO_UDP:
+            session.port_src = udp.s_port;
+            session.port_dst = udp.d_port;
+            session.prot = "UDP";
+            break;
+    }
+    return;
+}
