@@ -53,8 +53,8 @@ Working_classes Net_sniffer::start_sniff(){
     printf("Filter expression: %s\n\n\n", filter_exp);
 
     // open capture device
-    handle = pcap_open_live(dev, SNAP_LEN, 1, 1000, errbuf);
-    //handle = pcap_open_offline(dev, errbuf);
+    //handle = pcap_open_live(dev, SNAP_LEN, 1, 1000, errbuf);
+    handle = pcap_open_offline(dev, errbuf);
     if (handle == NULL) {
         fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
         exit(EXIT_FAILURE);
@@ -96,13 +96,13 @@ Working_classes Net_sniffer::start_sniff(){
 void Net_sniffer::got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
     Working_classes * wc = (Working_classes *) args;
     //EL классы должны быть названы существительными, например, PacketParser
-    Split_packet value;
-    Parse_packet *obj = new Parse_packet();
+    //Split_packet value;
+    Packet *value = new Packet();
     //EL нет смысла делать лишние копирования
-    value = obj->Parse(header, packet);
-    if (!value.is_broken) {
-        wc->sig_analysator.add_packet(value);
-        wc->stat_analysator.add_packet(value);
+    value->Parse(header, packet);
+    if (!value->is_broken) {
+        wc->sig_analysator.add_packet(*value);
+        //wc->stat_analysator.add_packet(value);
     }
 }
 
