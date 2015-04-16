@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
     }
     //Statistic_analysis * stat_analysis = new StatisticAnalysis(p.v);
     //wc.stat_analysator.print_map();
-    //wc.sig_analysator.print_map();
+    wc.sig_analysator.print_sessions_list();
     cout << "Capture complete" << endl;
     return 0;
 };
