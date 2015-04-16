@@ -15,13 +15,13 @@ bool Session::operator < (const Session & b) const {
 }
 
 Session::Session() {
-}	
+}    
 
 Session::Session(const Packet& p){
-	sniff_ip ip = p.get_ip();
+    sniff_ip ip = p.get_ip();
     sniff_tcp tcp = p.get_tcp();
     sniff_udp udp = p.get_udp();
-	ip_src = ip.ip_src;
+    ip_src = ip.ip_src;
     ip_dst = ip.ip_dst;
     protocol = ip.ip_p;
     switch(ip.ip_p) {

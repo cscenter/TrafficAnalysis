@@ -58,11 +58,11 @@ int Packages::last_packet_time() {
 }
 
 Statistic_analysis::~Statistic_analysis() {
-	cout << " destructor " << endl;
+    cout << " destructor " << endl;
 }
 
 void Statistic_analysis::add_packet(const Packet& p) {   //FILL MAP
-		int p_time = p.get_header().ts.tv_sec;
+        int p_time = p.get_header().ts.tv_sec;
         if (p_time - last_process_time > process_interval) {
             process_dead_sessions(p_time);
             last_process_time = p_time;
@@ -74,11 +74,11 @@ void Statistic_analysis::add_packet(const Packet& p) {   //FILL MAP
        
         Session temp_ses(p);
         Session temp_ses2(p);
-		temp_ses2.session_reverse();
+        temp_ses2.session_reverse();
         map<Session, Packages>::iterator it = Pack_time.find(temp_ses);
         map<Session, Packages>::iterator it2 = Pack_time.find(temp_ses2);
 
-		int p_size = p.get_size_payload();
+        int p_size = p.get_size_payload();
         if (it != Pack_time.end()) {
             //EL из за длинных названий тяжело читать
                 if (p_time > it->second.up_prev_sec + 1 && it->second.up_prev_sec != -1 ) {

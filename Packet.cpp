@@ -57,18 +57,18 @@ void Packet::Parse(const struct pcap_pkthdr *head, const u_char *packet) {
 
 
 pcap_pkthdr Packet::get_header() const {
-	return header;
+    return header;
 }
 
 
 sniff_ip Packet::get_ip() const {
-	return ip;
+    return ip;
 }
 
 sniff_tcp Packet::get_tcp() const {
-	return tcp;
+    return tcp;
 }
 
 sniff_udp Packet::get_udp() const {
-	return udp;
+    return udp;
 }

@@ -60,7 +60,7 @@ Working_classes Net_sniffer::start_sniff(){
         exit(EXIT_FAILURE);
     }
     //EL сделать два варианта запуска без переписывания программмы: из файла или из устройства
-	/*
+    /*
     // make sure we're capturing on an Ethernet device [2]
     if (pcap_datalink(handle) != DLT_EN10MB) {
         fprintf(stderr, "%s is not an Ethernet\n", dev);
@@ -80,7 +80,7 @@ Working_classes Net_sniffer::start_sniff(){
             filter_exp, pcap_geterr(handle));
         exit(EXIT_FAILURE);
     }
-	*/
+    */
 
     //EL не нужно лишних копирования при возврате этой переменной
     //EL надо передавать указатель из main
