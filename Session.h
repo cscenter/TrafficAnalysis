@@ -3,7 +3,7 @@
 #include <pcap.h>
 #include <string>
 #include <netinet/in.h>
-//#include "Parse_packet.h"
+#include "Packet.h"
 
 
 struct Session {
@@ -14,12 +14,13 @@ struct Session {
     std::string prot;
     u_char protocol;
     int time_to_live;
-    int last_packet_time;
+    int last_packet_time;    
+    Session(const Packet& p);
+    Session();
     bool is_alive() const;
     void print_session();
     //EL: move to cpp
     bool operator < (const Session & b) const;
-
     void session_reverse();
 };
 

@@ -61,75 +61,62 @@ Statistic_analysis::~Statistic_analysis() {
 	cout << " destructor " << endl;
 }
 
-void Statistic_analysis::add_packet(const Split_packet& p) {   //FILL MAP
-        if (p.header.ts.tv_sec - last_process_time > process_interval) {
-            process_dead_sessions(p.header.ts.tv_sec);
-            last_process_time = p.header.ts.tv_sec;
+void Statistic_analysis::add_packet(const Packet& p) {   //FILL MAP
+		int p_time = p.get_header().ts.tv_sec;
+        if (p_time - last_process_time > process_interval) {
+            process_dead_sessions(p_time);
+            last_process_time = p_time;
         }
         //EL может сделать конструктор у Session(const Packet&)
-        Session temp_ses, temp_ses2;
-        temp_ses.ip_src = p.ip.ip_src;
-        temp_ses.ip_dst = p.ip.ip_dst;
-        temp_ses.protocol = p.ip.ip_p;
-        temp_ses2.ip_src = p.ip.ip_dst;
-        temp_ses2.ip_dst = p.ip.ip_src;
-        temp_ses2.protocol = p.ip.ip_p;
-        switch(p.ip.ip_p) {
-            case IPPROTO_TCP:
-                temp_ses.port_src = p.tcp.th_sport;
-                temp_ses.port_dst = p.tcp.th_dport;
-                temp_ses2.port_src = p.tcp.th_dport;
-                temp_ses2.port_dst = p.tcp.th_sport;
-                break;
-            case IPPROTO_UDP:
-                temp_ses.port_src = p.udp.s_port;
-                temp_ses.port_dst = p.udp.d_port;
-                temp_ses2.port_src = p.udp.d_port;
-                temp_ses2.port_dst = p.udp.s_port;
-                break;
-        }
+        
+        
+        
+       
+        Session temp_ses(p);
+        Session temp_ses2(p);
+		temp_ses2.session_reverse();
         map<Session, Packages>::iterator it = Pack_time.find(temp_ses);
         map<Session, Packages>::iterator it2 = Pack_time.find(temp_ses2);
 
-
+		int p_size = p.get_size_payload();
         if (it != Pack_time.end()) {
             //EL из за длинных названий тяжело читать
-                if (p.header.ts.tv_sec > it->second.up_prev_sec + 1 && it->second.up_prev_sec != -1 ) {
+                if (p_time > it->second.up_prev_sec + 1 && it->second.up_prev_sec != -1 ) {
                 int j;
 
-                for (j = 0; j < p.header.ts.tv_sec - it->second.up_prev_sec  - 1; j++) {
+                for (j = 0; j < p_time - it->second.up_prev_sec  - 1; j++) {
                     it->second.uplink.push_back(0);
                 }
-                it->second.up_prev_sec = p.header.ts.tv_sec;
+                it->second.up_prev_sec = p_time;
             }
-            if (it->second.up_prev_sec  == (int)(p.header.ts.tv_sec)) it->second.uplink[it->second.uplink.size() - 1] += p.size_payload;
+            if (it->second.up_prev_sec  == (int)(p_time)) it->second.uplink[it->second.uplink.size() - 1] += p_size;
             else {
-                it->second.up_prev_sec = p.header.ts.tv_sec;
-                it->second.uplink.push_back(p.size_payload);
+                it->second.up_prev_sec = p_time;
+                it->second.uplink.push_back(p_size);
             }
         }
         else if (it2 != Pack_time.end()) {
-            if (it2->second.up_init_sec == 0) it2->second.up_init_sec = p.header.ts.tv_sec;
-            if (p.header.ts.tv_sec > it2->second.down_prev_sec + 1 && it2->second.down_prev_sec != -1 ) {
+            if (it2->second.up_init_sec == 0) it2->second.up_init_sec = p_time;
+            if (p_time > it2->second.down_prev_sec + 1 && it2->second.down_prev_sec != -1 ) {
                 int j;
-                for (j = 0; j < p.header.ts.tv_sec - it2->second.down_prev_sec  - 1; j++) {
+                for (j = 0; j < p_time - it2->second.down_prev_sec  - 1; j++) {
                    it2->second.downlink.push_back(0);
                 }
-                //it2->second.down_prev_sec = p.header.ts.tv_sec;
+                //it2->second.down_prev_sec = p_time;
             }
-            if (it2->second.down_prev_sec == (int)(p.header.ts.tv_sec)) {
-                it2->second.downlink[it2->second.downlink.size() - 1] += p.size_payload;
+            if (it2->second.down_prev_sec == (int)(p_time)) {
+                it2->second.downlink[it2->second.downlink.size() - 1] += p_size;
             }
             else {
-                 it2->second.down_prev_sec = p.header.ts.tv_sec;
-                 it2->second.downlink.push_back(p.size_payload);
+                 it2->second.down_prev_sec = p_time;
+                 it2->second.downlink.push_back(p_size);
             }
         }
         else {
-            Pack_time[temp_ses].ip = p.ip;
-            Pack_time[temp_ses].uplink.push_back(p.size_payload);
-            Pack_time[temp_ses].up_init_sec = p.header.ts.tv_sec;
-            Pack_time[temp_ses].up_prev_sec = p.header.ts.tv_sec;
+          // ?  Pack_time[temp_ses].ip = p_ip;
+            Pack_time[temp_ses].uplink.push_back(p_size);
+            Pack_time[temp_ses].up_init_sec = p_time;
+            Pack_time[temp_ses].up_prev_sec = p_time;
         }
 
 }
@@ -157,7 +144,7 @@ void Statistic_analysis::print_map() {
     out.close();
 }
 
-void Statistic_analysis::dead_session_inform(Session ses) {
+void Statistic_analysis::dead_session_inform(const Session & ses) {
     cout << "Session from ip " << inet_ntoa(ses.ip_src);
     cout << " to " << inet_ntoa(ses.ip_dst);
     cout << "  IS DEAD" << endl << endl;

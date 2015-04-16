@@ -1,7 +1,7 @@
 #ifndef STATISTIC_ANALYSIS_H
 #define STATISTIC_ANALYSIS_H
 #include <pcap.h>
-#include "Parse_packet.h"
+#include "Packet.h"
 #include <map>
 #include "Session.h"
 #include <vector>
@@ -11,6 +11,8 @@ struct Packages {
     struct sniff_ip ip;
     std::vector<int> uplink;
     std::vector<int> downlink;
+    std::vector<bool> if_up_active;
+    std::vector<bool> if_down_active;
     int up_init_sec;
     int up_prev_sec;
     int down_init_sec;
@@ -33,21 +35,22 @@ class Statistic_analysis {
     int processed_sessions_counter;
     int process_interval;
     int last_process_time;
+    int period;
     //EL поля с маленькой буквы
     std::map<Session, Packages> Pack_time;
 public:
     Statistic_analysis();
     ~Statistic_analysis();
-    Statistic_analysis(int process_interval);
+    Statistic_analysis(int process_interval, int period);
     //EL параметры этого метода не должны зависеть 
     //от метода хранения объектов в классе
     void write_session_to_file(std::map<Session, Packages>::iterator it);
     void process_dead_sessions(int current_time);
-    void add_packet(const Split_packet& p);
+    void add_packet(const Packet& p);
     void print_map();
     void process_all_sessions();
     //EL const&
-    void dead_session_inform(Session ses);
+    void dead_session_inform(const Session& ses);
     void write_map();
 };
 

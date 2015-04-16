@@ -14,6 +14,27 @@ bool Session::operator < (const Session & b) const {
     return protocol < b.protocol;
 }
 
+Session::Session() {
+}	
+
+Session::Session(const Packet& p){
+	sniff_ip ip = p.get_ip();
+    sniff_tcp tcp = p.get_tcp();
+    sniff_udp udp = p.get_udp();
+	ip_src = ip.ip_src;
+    ip_dst = ip.ip_dst;
+    protocol = ip.ip_p;
+    switch(ip.ip_p) {
+        case IPPROTO_TCP:
+            port_src = tcp.th_sport;
+            port_dst = tcp.th_dport;
+            break;
+        case IPPROTO_UDP:
+            port_src = udp.s_port;
+            port_dst = udp.d_port;
+            break;
+    } 
+}
 
 void Session::print_session(){
     cout << "From ip:   " << inet_ntoa(ip_src) << endl;
