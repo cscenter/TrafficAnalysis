@@ -14,21 +14,20 @@
 class Pack_data {
 
     in_addr src;
-    //EL может надо хранить vector<какой-нибудь пакет>
-    std::vector<u_char*> upload;
 
-    std::vector<u_char*> download;
+    std::vector<Packet> upload;
+
+    std::vector<Packet> download;
 
 public:
 
     Pack_data();
 
-    //EL лучше все передавть по const &
-    void to_upload(Packet pack);
+    void to_upload(const Packet& pack);
 
-    void to_download(Packet pack);
-    //EL date значит день
-    int check_date(const char *expr);
+    void to_download(const Packet& pack);
+
+    int checking_for_signatures(const char *expr);
 
     void print_payload(int length, const u_char *payload);
 
@@ -37,22 +36,17 @@ public:
 
 class Signature_analysis {
 
-    //EL поля с маленькой буквы
-    std::map<Session, Pack_data> Map;
-    //EL может вернуть & или даже const?
-    //EL может написать const у метода
-    //Session get_session(Split_packet pack);
+    std::map<Session, Pack_data> sessions_list;
 
 public:
 
     Signature_analysis();
-
     //EL лишние копирования
-    std::map<Session, Pack_data> get_map() {
-        return Map;
+    std::map<Session, Pack_data>& get_map() { //???
+        return sessions_list;
     }
 
-    void print_map();
+    void print_sessions_list();
 
     //EL зачем на стеке копия?
     //void form_map(std::vector<Split_packet> Packets);
