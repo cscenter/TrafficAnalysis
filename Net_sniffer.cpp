@@ -17,14 +17,16 @@ Net_sniffer::Net_sniffer() {
 
 
 
-Net_sniffer::Net_sniffer(char *device, char *protocol, int n) {
+Net_sniffer::Net_sniffer(char *device, char *protocol, int n, const char *m) {
     //EL change to static arrays или как минимум надо память освобождать
     //классу нужен деструктор
-    dev = (char *) malloc((sizeof(device)));
+    dev = (char *) malloc((sizeof(device))); //размер не под указатель?
     strcpy(dev, device);
     filter_exp = (char *) malloc((sizeof(protocol)));
     strcpy(filter_exp, protocol);
     num_packets = n;
+    mode = (char *) malloc((sizeof(m)));
+    strcpy(mode, m);
 };
 
 
@@ -53,14 +55,19 @@ Working_classes Net_sniffer::start_sniff(){
     printf("Filter expression: %s\n\n\n", filter_exp);
 
     // open capture device
-    //handle = pcap_open_live(dev, SNAP_LEN, 1, 1000, errbuf);
-    handle = pcap_open_offline(dev, errbuf);
+    if (strstr(mode, "offline") != NULL) {
+        handle = pcap_open_offline(dev, errbuf);
+    }
+    else {
+        handle = pcap_open_live(dev, SNAP_LEN, 1, 1000, errbuf);
+    }
+
     if (handle == NULL) {
         fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
         exit(EXIT_FAILURE);
     }
     //EL сделать два варианта запуска без переписывания программмы: из файла или из устройства
-    /*
+
     // make sure we're capturing on an Ethernet device [2]
     if (pcap_datalink(handle) != DLT_EN10MB) {
         fprintf(stderr, "%s is not an Ethernet\n", dev);
@@ -68,7 +75,7 @@ Working_classes Net_sniffer::start_sniff(){
     }
 
     // compile the filter expression
-    if (pcap_compile(handle, &fp, filter_exp, 0, net) == -1) {
+    /*if (pcap_compile(handle, &fp, filter_exp, 0, net) == -1) {
         fprintf(stderr, "Couldn't parse filter %s: %s\n",
             filter_exp, pcap_geterr(handle));
         exit(EXIT_FAILURE);
@@ -79,14 +86,14 @@ Working_classes Net_sniffer::start_sniff(){
         fprintf(stderr, "Couldn't install filter %s: %s\n",
             filter_exp, pcap_geterr(handle));
         exit(EXIT_FAILURE);
-    }
-    */
+    }*/
+
 
     //EL не нужно лишних копирования при возврате этой переменной
     //EL надо передавать указатель из main
     Working_classes p;
 
-    pcap_loop(handle, 0, got_packet, (u_char *)(&p));
+    pcap_loop(handle, 10000, got_packet, (u_char *)(&p));
 
     pcap_freecode(&fp);
     pcap_close(handle);
