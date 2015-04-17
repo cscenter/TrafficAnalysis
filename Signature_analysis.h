@@ -8,12 +8,14 @@
 #include "Pack_headers_struct.h"
 #include "Packet.h"
 #include "Session.h"
+#include <string>
 
 
-//EL Может Session_data?
-class Pack_data {
+class Session_data {
 
-    in_addr src;
+    bool solution;
+
+    std::string session_solution;
 
     std::vector<Packet> upload;
 
@@ -21,35 +23,36 @@ class Pack_data {
 
 public:
 
-    Pack_data();
+    Session_data();
+
+    inline bool has_solution() const { return solution; }
+
+    inline std::string get_session_solution() const { return session_solution; } //&? inline?
 
     void to_upload(const Packet& pack);
 
     void to_download(const Packet& pack);
 
-    int checking_for_signatures(const char *expr);
+    void checking_for_signatures(const Packet& pack, const char *expr);
 
-    void print_payload(int length, const u_char *payload);
+    void print_payload(int length, const u_char *payload) const;
+
+    void clean_session_data();
 
 };
 
 
 class Signature_analysis {
 
-    std::map<Session, Pack_data> sessions_list;
+    std::map<Session, Session_data> sessions_list;
 
 public:
 
     Signature_analysis();
-    //EL лишние копирования
-    std::map<Session, Pack_data>& get_map() { //???
-        return sessions_list;
-    }
+
+    inline std::map<Session, Session_data>& get_map() { return sessions_list; } //&?
 
     void print_sessions_list();
-
-    //EL зачем на стеке копия?
-    //void form_map(std::vector<Split_packet> Packets);
 
     void add_packet(const Packet& pack);
 
