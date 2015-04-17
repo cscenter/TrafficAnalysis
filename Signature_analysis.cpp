@@ -4,49 +4,30 @@
 
 using namespace std;
 
-Pack_data::Pack_data() {
+Session_data::Session_data() {
+    solution = false;
+    session_solution = "";
 }
 
-void Pack_data::to_upload(const Packet& pack) {
-    //EL где деструктор?
-    //u_char *value = new u_char[pack.get_size_payload()];
-    //memmove(value, pack.get_pload(), pack.get_size_payload());
+void Session_data::to_upload(const Packet& pack) {
     upload.push_back(pack);
 }
 
-void Pack_data::to_download(const Packet& pack) {
-    //u_char *value = new u_char[pack.get_size_payload()];
-    //memmove(value, pack.get_pload(), pack.get_size_payload());
+void Session_data::to_download(const Packet& pack) {
     download.push_back(pack);
 }
 
 
-int Pack_data::checking_for_signatures(const char *expr) {
-    int count = 0;
-    int i;
-    //EL minor убрать дублирование кода
-    cout << "UpLoad " << upload.size() << endl;
-    for (i = 0; i < upload.size(); i++) {
-        const char *payload = (char *)upload[i].get_pload();
-        if ( strstr(payload, expr) != NULL) {
-            count++;
-        }
-        //print_payload(strlen(payload), upload[i].get_pload());
-        payload = NULL;
+void Session_data::checking_for_signatures(const Packet& pack, const char *expr) {
+    const char *payload = (char *)pack.get_pload();
+    if ( strstr(payload, expr) != NULL) {
+        string s(expr);
+        session_solution = s;
+        solution = true;
     }
-    cout << "DownLoad " << download.size() << endl;
-    for (i = 0; i < download.size(); i++) {
-        const char *payload = (char *)download[i].get_pload();
-        if ( strstr(payload, expr) != NULL ) {
-            count++;
-        }
-        //print_payload(strlen(payload), download[i].get_pload());
-        payload = NULL;
-    }
-    return count;
 }
 
-void Pack_data::print_payload(int length, const u_char *payload) { // вывод полезной нагрузки пакетов
+void Session_data::print_payload(int length, const u_char *payload) const { // вывод полезной нагрузки пакетов
     int i;
     while(length > 0) {
         int T = 100; // длина выводимой строки
@@ -80,74 +61,62 @@ void Pack_data::print_payload(int length, const u_char *payload) { // вывод
     cout << endl;
 }
 
+void Session_data::clean_session_data() {
+    upload.clear();
+    download.clear();
+}
+
 
 Signature_analysis::Signature_analysis() {
 }
 
 void Signature_analysis::print_sessions_list() {
     //EL в 11 стандарте есть auto
-    map<Session, Pack_data>::iterator iter;
+    map<Session, Session_data>::iterator iter;
     iter = sessions_list.begin();
     while(iter != sessions_list.end()) {
         Session session = iter->first;
-        session.print_session();
-        Pack_data p_date = iter->second;
-
-        //EL вывод на экран и принятие решения по сессии --- это совсем разные вещи
-        char expr[] = "HTTP/1.1";
-        int answer = p_date.checking_for_signatures(expr);
-        if (answer) {
-            cout << expr << "    " << "OK!!!" << "  " << answer << "  " << endl << endl;
-        }
-        else {
-            cout << expr << "    " << "NONE!!!" << endl << endl;
+        Session_data s_date = iter->second;
+        if (s_date.has_solution()) {
+            session.print_session();
+            cout << s_date.get_session_solution() << endl << endl;
         }
         iter++;
     }
 }
 
-/*void Signature_analysis::form_map(vector<Split_packet> Packets) {
-    int i;
-    map<Session, Pack_data>::iterator iter;
-    for (i = 0; i < Packets.size(); i++) {
-        Session session = get_session(Packets[i]);
-        iter = Map.find(session);
-        if (iter != Map.end()) {
-            Map[session].to_upload(Packets[i]);
-        }
-        else {
-            session.session_reverse(); // если уже есть -> добавить, если нет -> создать
-            iter = Map.find(session);
-            if (iter != Map.end()) {
-                Map[session].to_download(Packets[i]);
-            }
-            else {
-                session.session_reverse(); // вопрос
-                Map[session].to_upload(Packets[i]);
-            }
-        }
-    }
-    //cout << Map.size() << endl;
-}*/
-
 void Signature_analysis::add_packet(const Packet& pack) {
     //EL minor хорошо бы утсранить 2 find'а
     Session session(pack);
-    map<Session, Pack_data>::iterator iter;
+    map<Session, Session_data>::iterator iter;
     iter = sessions_list.find(session);
     if (iter != sessions_list.end()) {
+        if (sessions_list[session].has_solution()) {
+            return;
+        }
         sessions_list[session].to_upload(pack);
     }
     else {
         session.session_reverse(); // если уже есть -> добавить, если нет -> создать
         iter = sessions_list.find(session);
         if (iter != sessions_list.end()) {
+            if (sessions_list[session].has_solution()) {
+                return;
+            }
             sessions_list[session].to_download(pack);
         }
         else {
             session.session_reverse();
             sessions_list[session].to_upload(pack);
         }
+    }
+
+    char expr[] = "HTTP/1.1"; // список сигнатур..
+    sessions_list[session].checking_for_signatures(pack, expr);
+    if (sessions_list[session].has_solution()) {
+        session.print_session();
+        cout << sessions_list[session].get_session_solution() << endl << endl;
+        sessions_list[session].clean_session_data(); // я не стал полностью удалять элемент map, потому что тогда в случае прихода паакета из это же сессии обект создастся вновь и будет приниматься решение
     }
 }
 
