@@ -10,17 +10,17 @@
 class Net_sniffer {
 private:
     char *dev;              // device name
+    char *mode;
     char *filter_exp;        // filter expression
     char errbuf[PCAP_ERRBUF_SIZE];        // error buffer
     pcap_t *handle;                // packet capture handle
     struct bpf_program fp;        // compiled filter program (expression)
     bpf_u_int32 mask;            // subnet mask
     bpf_u_int32 net;            // ip
-    //EL пора убрать
     int num_packets;            // number of packets to capture
 public:
     Net_sniffer();
-    Net_sniffer(char *device, char *protocol, int n);
+    Net_sniffer(char *device, char *protocol, int n, const char *m);
 
     Working_classes start_sniff();
 
