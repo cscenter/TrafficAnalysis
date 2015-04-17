@@ -15,7 +15,7 @@ bool Session::operator < (const Session & b) const {
 }
 
 Session::Session() {
-}    
+}
 
 Session::Session(const Packet& p){
     sniff_ip ip = p.get_ip();
@@ -28,12 +28,14 @@ Session::Session(const Packet& p){
         case IPPROTO_TCP:
             port_src = tcp.th_sport;
             port_dst = tcp.th_dport;
+            prot = "TCP";
             break;
         case IPPROTO_UDP:
             port_src = udp.s_port;
             port_dst = udp.d_port;
+            prot = "UDP";
             break;
-    } 
+    }
 }
 
 void Session::print_session(){
@@ -42,7 +44,6 @@ void Session::print_session(){
     cout << "From port: " << ntohs(port_src) << endl;
     cout << "To port:   " << ntohs(port_dst) << endl;
     cout << "Protocol   " << prot << endl;
-    cout << endl;
 }
 
 void Session::session_reverse() {
