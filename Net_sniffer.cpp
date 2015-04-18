@@ -25,6 +25,7 @@ Net_sniffer::Net_sniffer(char *device, char *protocol, int n, const char *m) {
     filter_exp = (char *) malloc((sizeof(protocol)));
     strcpy(filter_exp, protocol);
     num_packets = n;
+    //EL: сделат char mode[256 (и dev, filter)]
     mode = (char *) malloc((sizeof(m)));
     strcpy(mode, m);
 };
@@ -39,6 +40,7 @@ Working_classes Net_sniffer::start_sniff(){
         if (dev == NULL) {
             fprintf(stderr, "Couldn't find default device: %s\n",
                 errbuf);
+            //EL: Заменить на эксепшены
             exit(EXIT_FAILURE);
         }
     }
@@ -55,6 +57,7 @@ Working_classes Net_sniffer::start_sniff(){
     printf("Filter expression: %s\n\n\n", filter_exp);
 
     // open capture device
+    //EL: вся работа с командной строкой только в main. здесь bool isOnline
     if (strstr(mode, "offline") != NULL) {
         handle = pcap_open_offline(dev, errbuf);
     }
@@ -64,6 +67,7 @@ Working_classes Net_sniffer::start_sniff(){
 
     if (handle == NULL) {
         fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
+        //EL: exception
         exit(EXIT_FAILURE);
     }
     //EL сделать два варианта запуска без переписывания программмы: из файла или из устройства

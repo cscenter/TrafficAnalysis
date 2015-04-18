@@ -17,6 +17,8 @@ class Session_data {
 
     std::string session_solution;
 
+    //EL: Packet* не будет лишних копирований 
+    //EL: не забудьте потом удалить пакеты в деструкторе
     std::vector<Packet> upload;
 
     std::vector<Packet> download;

@@ -104,6 +104,7 @@ void Statistic_analysis::fill_if_not_equal(Packages& p) {
 void Statistic_analysis::process_dead_sessions(int current_time) {
     //cout << "Starting_to_process..." << endl;
     //cout << "Size of map before " << pack_time.size() << endl;
+    //EL:auto -std=c++11
     map<Session, Packages>::iterator it = pack_time.begin();
     while (it != pack_time.end()) {
             if (!it->second.is_alive(current_time)) {

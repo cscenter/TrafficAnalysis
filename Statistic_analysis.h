@@ -46,9 +46,11 @@ class Statistic_analysis {
     int period;
     std::map<Session, Packages> pack_time;
 public:
+    //EL: разделить функции на публичные и приватные
     Statistic_analysis();
     ~Statistic_analysis();
     Statistic_analysis(int process_interval, int period);
+    //EL: const &
     void write_session_to_file(Session first, Packages second);
     void process_dead_sessions(int current_time);
     void add_packet(const Packet& p);
