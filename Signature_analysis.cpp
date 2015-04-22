@@ -1,4 +1,5 @@
 #include <iostream>
+#include <regex>
 #include "Session.h"
 #include "Signature_analysis.h"
 
@@ -18,11 +19,11 @@ void Session_data::to_download(const Packet& pack) {
 }
 
 
-void Session_data::checking_for_signatures(const Packet& pack, const char *expr) {
+void Session_data::checking_for_signatures(const Packet& pack, regex reg) {//const char *expr) {
     const char *payload = (char *)pack.get_pload();
-    if ( strstr(payload, expr) != NULL) {
-        string s(expr);
-        session_solution = s;
+    if ( regex_search(payload, reg) ) {//strstr(payload, expr) != NULL) {
+        //string s(expr);
+        //session_solution = s;
         solution = true;
     }
 }
@@ -111,8 +112,9 @@ void Signature_analysis::add_packet(const Packet& pack) {
         }
     }
 
-    char expr[] = "HTTP/1.1"; // список сигнатур..
-    sessions_list[session].checking_for_signatures(pack, expr);
+    //char expr[] = "HTTP/1.1"; // список сигнатур..
+    regex reg("HTTP/1.1");
+    sessions_list[session].checking_for_signatures(pack, reg);
     if (sessions_list[session].has_solution()) {
         session.print_session();
         cout << sessions_list[session].get_session_solution() << endl << endl;
