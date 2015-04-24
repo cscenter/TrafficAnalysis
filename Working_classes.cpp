@@ -4,17 +4,19 @@
 #include "Working_classes.h"
 
 void Working_classes::sigfunc(int sig) {
-        char c;
-        if(sig != SIGINT)
-            return;
-        else {
-            printf("\nХотите завершить программу (y/n) : ");
-            while((c=getchar()) == 'n')
-            return;
-            exit (0);
-        }
+    char c;
+    if(sig != SIGINT)
+        return;
+    else {
+        printf("\nХотите завершить программу (y/n) : ");
+        while((c=getchar()) == 'n')
+        return;
+        exit (0);
+    }
 }
 
-Working_classes::Working_classes() {
+Working_classes::Working_classes(Config& config) {
+    sig_analysator = new Signature_analysis(config);
+    stat_analysator = new Statistic_analysis();
     signal(SIGINT,sigfunc);
 }
