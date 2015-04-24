@@ -16,25 +16,45 @@ Config::Config(const char* f_name) {
     current_element = document.RootElement()->FirstChildElement();
 }
 
-bool Config::get_next_signature(string& signature, string& type) {
+bool Config::get_next_signature(string& signature, string& type, int *priority) {
     if (!in_process) {
         return false;
     }
+
     TiXmlAttribute *atr = current_element->FirstAttribute();
     if (atr == NULL) {
+
         return false;
     }
     string sign(atr->Value());
     signature = sign;
+
     atr = atr->Next();
     if ( atr == NULL) {
         return false;
     }
     string t(atr->Value());
     type = t;
+
+    atr = atr->Next();
+    if ( atr == NULL) {
+        return false;
+    }
+    int pr;
+    if (atr->QueryIntValue(&pr) == TIXML_SUCCESS) {
+        *priority = pr;
+    }
+    else {
+        cout << "Tiny problem!!!" << endl;
+        return false;
+    }
+
+
     current_element = current_element->NextSiblingElement();
     if (current_element == NULL) {
+        cout << "Tiny problem!!!" << endl;
         in_process = false;
     }
+
     return true;
 }
