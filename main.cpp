@@ -1,6 +1,7 @@
 #include <iostream>
 #include <new>
 #include <stdlib.h>
+#include <fstream>
 
 #include "Net_sniffer.h"
 #include "Signature_analysis.h"
@@ -12,19 +13,22 @@
 
 using namespace std;
 
-
-
 int main(int argc, char **argv) {
+    Config config("my.xml");
     char protocol[] = "ip";
-    Working_classes wc;
+    Working_classes *wc = new Working_classes(config);
     if (argc == 2) {
-        Net_sniffer *obj = new Net_sniffer(argv[1], protocol, 0, "live");
-        wc = obj->start_sniff();
+        Net_sniffer *obj = new Net_sniffer(argv[1], protocol, true);
+        obj->start_sniff(wc);
     }
     else {
         if (argc == 3) {
-            Net_sniffer *obj = new Net_sniffer(argv[1], protocol, 0, argv[2]);
-            wc = obj->start_sniff();
+            bool mode = true;
+            if (strcmp(argv[2], "offline") == 0) {
+                mode = !mode;
+            }
+            Net_sniffer *obj = new Net_sniffer(argv[1], protocol, mode);
+            obj->start_sniff(wc);
         }
         else {
             if (argc > 3) {
@@ -33,13 +37,11 @@ int main(int argc, char **argv) {
             }
             else {
                 Net_sniffer *obj = new Net_sniffer();
-                wc = obj->start_sniff();
+                obj->start_sniff(wc);
             }
         }
     }
-    //Statistic_analysis * stat_analysis = new StatisticAnalysis(p.v);
-    //wc.stat_analysator.print_map();
-    //wc.sig_analysator.print_sessions_list();
-    cout << "Capture complete" << endl;
+    wc->get_signature_analysis()->print_sessions_list();
+    delete wc;
     return 0;
 };
