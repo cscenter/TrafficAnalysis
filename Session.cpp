@@ -39,11 +39,11 @@ Session::Session(const Packet& p){
 }
 
 void Session::print_session(){
-    cout << "From ip:   " << inet_ntoa(ip_src) << endl;
-    cout << "To ip:     " << inet_ntoa(ip_dst) << endl;
-    cout << "From port: " << ntohs(port_src) << endl;
-    cout << "To port:   " << ntohs(port_dst) << endl;
-    cout << "Protocol   " << prot << endl;
+    cout << "From ip: " << inet_ntoa(ip_src) << "  ";
+    cout << "To ip: " << inet_ntoa(ip_dst) << "     ";
+    cout << "From port: " << ntohs(port_src) << "    ";
+    cout << "To port: " << ntohs(port_dst) << "    ";
+    cout << "Protocol " << prot << endl;
 }
 
 void Session::session_reverse() {
