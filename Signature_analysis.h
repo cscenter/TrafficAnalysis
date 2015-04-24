@@ -1,6 +1,7 @@
 #ifndef SIGNATURE_ANALISATOR_H
 #define SIGNATURE_ANALISATOR_H
 
+#include <fstream>
 #include <map>
 #include <regex>
 #include <vector>
@@ -9,37 +10,42 @@
 #include "Pack_headers_struct.h"
 #include "Packet.h"
 #include "Session.h"
-#include <string>
+#include "Config.h"
 
-using namespace std;
+
+
+struct Traffic {
+    std::string type;
+    std::regex signature;
+    int priority;
+
+    Traffic(std::string sign, std::string t, int p) : signature(sign), type(t), priority(p) {
+    }
+};
 
 
 class Session_data {
-
+private:
     bool solution;
-
-    string session_solution;
-
-    //EL: Packet* не будет лишних копирований
-    //EL: не забудьте потом удалить пакеты в деструкторе
-    vector<Packet> upload;
-
-    vector<Packet> download;
+    int solution_priority;
+    int solution_num_pack;
+    std::string session_solution;
+    std::vector<Packet> upload; // *Packet
+    std::vector<Packet> download;
 
 public:
 
     Session_data();
 
-    inline bool has_solution() const { return solution; }
+    bool has_solution() const { return solution; }
 
-    inline string get_session_solution() const { return session_solution; } //&? inline?
+    std::string get_session_solution() const { return session_solution; }
+
+    void set_session_solution(const std::string& solution, int priority);
 
     void to_upload(const Packet& pack);
 
     void to_download(const Packet& pack);
-
-    void checking_for_signatures(const Packet& pack, regex reg);
-    //void checking_for_signatures(const Packet& pack, const char *expr);
 
     void print_payload(int length, const u_char *payload) const;
 
@@ -50,13 +56,18 @@ public:
 
 class Signature_analysis {
 
-    map<Session, Session_data> sessions_list;
+    std::map<Session, Session_data> sessions_list;
+
+    std::vector<Traffic> sign_type_list;
 
 public:
 
-    Signature_analysis();
+    Signature_analysis(Config& config);
+    ~Signature_analysis() { print_sessions_list(); };
 
-    inline map<Session, Session_data>& get_map() { return sessions_list; } //&?
+    void checking_for_signatures(const Packet& pack, Session_data& ) const;
+
+    std::map<Session, Session_data>& get_map() { return sessions_list; } //&?
 
     void print_sessions_list();
 
