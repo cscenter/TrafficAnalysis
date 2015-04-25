@@ -63,7 +63,6 @@ class Signature_analysis {
 public:
 
     Signature_analysis(Config& config);
-    ~Signature_analysis() { print_sessions_list(); };
 
     void checking_for_signatures(const Packet& pack, Session_data& ) const;
 

@@ -86,16 +86,16 @@ Signature_analysis::Signature_analysis(Config& config) {
 }
 
 void Signature_analysis::print_sessions_list() {
-    cout << sessions_list.size() << endl;
+    ofstream out("session_without_solution_pload.txt");
     //EL в 11 стандарте есть auto
     map<Session, Session_data>::iterator iter;
     iter = sessions_list.begin();
     while(iter != sessions_list.end()) {
         Session session = iter->first;
         Session_data s_date = iter->second;
-        if (s_date.has_solution()) {
+        if (!s_date.has_solution()) {
             session.print_session();
-            cout << s_date.get_session_solution() << endl << endl;
+            out << endl << "/////////////////////////////////////////////////////////" << endl;
         }
         iter++;
     }
@@ -107,18 +107,18 @@ void Signature_analysis::add_packet(const Packet& pack) {
     map<Session, Session_data>::iterator iter;
     iter = sessions_list.find(session);
     if (iter != sessions_list.end()) {
-        if (sessions_list[session].has_solution()) {
-            return;
-        }
+        //if (sessions_list[session].has_solution()) {
+        //    return;
+        //}
         sessions_list[session].to_upload(pack);
     }
     else {
         session.session_reverse(); // если уже есть -> добавить, если нет -> создать
         iter = sessions_list.find(session);
         if (iter != sessions_list.end()) {
-            if (sessions_list[session].has_solution()) {
-                return;
-            }
+            //if (sessions_list[session].has_solution()) {
+            //    return;
+            //}
             sessions_list[session].to_download(pack);
         }
         else {
@@ -131,20 +131,19 @@ void Signature_analysis::add_packet(const Packet& pack) {
     if (sessions_list[session].has_solution()) {
         session.print_session();
         cout << sessions_list[session].get_session_solution() << endl << endl;
-        //sessions_list[session].clean_session_data(); // я не стал полностью удалять элемент map, потому что тогда в случае прихода паакета из это же сессии обект создастся вновь и будет приниматься решение
+        ofstream out("session_with_solution_pload.txt", ios::app);
+        out << pack.get_pload() << endl << "//////////////////////////////////////////////////////////////////////////////" << endl;
+        sessions_list[session].clean_session_data();
     }
 }
 
 void Signature_analysis::checking_for_signatures(const Packet& pack, Session_data& session) const {
-    ofstream out("session_pload.txt", ios::app);
     string payload((char *)pack.get_pload());
-    out << payload << endl << "//////////////////////////////////////////////////////////////////////////////" << endl;
     for ( int i = 0; i < sign_type_list.size(); i++ ) {
         if (regex_search(payload, sign_type_list[i].signature)) {
            session.set_session_solution(sign_type_list[i].type, sign_type_list[i].priority);
         }
     }
-
 }
 
 
