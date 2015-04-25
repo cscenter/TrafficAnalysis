@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
             }
         }
     }
-    cout << "Before destruct" << endl;
+    //cout << "Before destruct" << endl;
     delete wc;
     return 0;
 };

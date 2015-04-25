@@ -1,5 +1,5 @@
-main: main.o Net_sniffer.o Statistic_analysis.o Packet.o Session.o Working_classes.o Signature_analysis.o Config.o
-	g++ main.o Config.o Statistic_analysis.o Packet.o Net_sniffer.o Session.o Working_classes.o Signature_analysis.o tiny*.o -lpcap -o main 
+main: main.o Net_sniffer.o Statistic_analysis.o Packet.o Session.o Working_classes.o Signature_analysis.o Config.o Statistic_data.o
+	g++ main.o Config.o Statistic_analysis.o Packet.o Net_sniffer.o Session.o Working_classes.o Signature_analysis.o tiny*.o Statistic_data.o -lpcap -o main 
 	
 main.o: main.cpp Net_sniffer.h Statistic_analysis.h Packet.h Signature_analysis.h Config.h
 	g++-4.9 -c main.cpp  -std=c++11 
@@ -9,6 +9,9 @@ Statistic_analysis.o: Statistic_analysis.cpp Statistic_analysis.h
 	
 Packet.o: Packet.cpp Packet.h
 	g++ -c Packet.cpp -std=c++11
+	
+Statistic_data.o: Statistic_data.cpp Statistic_data.h
+	g++ -c Statistic_data.cpp -std=c++11
 	
 Signature_analysis.o: Signature_analysis.cpp Signature_analysis.h
 	g++-4.9 -c Signature_analysis.cpp -std=c++11

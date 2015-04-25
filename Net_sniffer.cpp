@@ -18,9 +18,9 @@ Net_sniffer::Net_sniffer() {
 
 
 Net_sniffer::Net_sniffer(char *device, char *protocol, bool mode) {
-    dev = (char *) malloc((sizeof(device)));
-    strcpy(dev, device);
-    strcpy(filter_exp, protocol);
+    dev = (char *) malloc(strlen(device) + 1);
+    memcpy(dev, device, strlen(device));
+    memcpy(filter_exp, protocol, strlen(device));
     is_live = mode;
 };
 
@@ -74,7 +74,7 @@ void Net_sniffer::start_sniff(Working_classes* p){
     }*/
 
     pcap_loop(handle, 0, got_packet, (u_char *)(p));
-    p->get_signature_analysis()->print_sessions_list();
+    //p->get_signature_analysis()->print_sessions_list();
     pcap_freecode(&fp);
     pcap_close(handle);
 };
@@ -84,8 +84,8 @@ void Net_sniffer::got_packet(u_char *args, const struct pcap_pkthdr *header, con
     Packet *value = new Packet();
     value->Parse(header, packet);
     if (!value->is_broken) {
-        ((Working_classes *) args)->get_signature_analysis()->add_packet(*value);
-        //осторожно, я менял wc wc->get_statistic_analysys()->add_packet(*value);
+        //((Working_classes *) args)->get_signature_analysis()->add_packet(*value);
+        ((Working_classes *) args)->get_statistic_analysys()->add_packet(*value);
     }
 }
 
