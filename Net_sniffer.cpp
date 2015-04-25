@@ -18,7 +18,6 @@ Net_sniffer::Net_sniffer() {
 
 
 Net_sniffer::Net_sniffer(char *device, char *protocol, bool mode) {
-    //классу нужен деструктор
     dev = (char *) malloc((sizeof(device)));
     strcpy(dev, device);
     strcpy(filter_exp, protocol);
@@ -38,7 +37,6 @@ void Net_sniffer::start_sniff(Working_classes* p){
         }
     }
 
-    // get network number and mask associated with capture device
     if (pcap_lookupnet(dev, &net, &mask, errbuf) == -1 && is_live) {
         fprintf(stderr, "Couldn't get netmask for device %s: %s\n", dev, errbuf);
         net = 0;
@@ -69,7 +67,6 @@ void Net_sniffer::start_sniff(Working_classes* p){
         exit(EXIT_FAILURE);
     }
 
-    // apply the compiled filter
     if (pcap_setfilter(handle, &fp) == -1) {
         fprintf(stderr, "Couldn't install filter %s: %s\n",
             filter_exp, pcap_geterr(handle));
@@ -77,16 +74,17 @@ void Net_sniffer::start_sniff(Working_classes* p){
     }*/
 
     pcap_loop(handle, 0, got_packet, (u_char *)(p));
+    p->get_signature_analysis()->print_sessions_list();
     pcap_freecode(&fp);
     pcap_close(handle);
 };
 
 void Net_sniffer::got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
-    Working_classes * wc = (Working_classes *) args;
+
     Packet *value = new Packet();
     value->Parse(header, packet);
     if (!value->is_broken) {
-        wc->get_signature_analysis()->add_packet(*value);
+        ((Working_classes *) args)->get_signature_analysis()->add_packet(*value);
         //осторожно, я менял wc wc->get_statistic_analysys()->add_packet(*value);
     }
 }

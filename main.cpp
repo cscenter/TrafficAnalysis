@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
         if (argc == 3) {
             bool mode = true;
             if (strcmp(argv[2], "offline") == 0) {
-                mode = !mode;
+                mode = false;
             }
             Net_sniffer *obj = new Net_sniffer(argv[1], protocol, mode);
             obj->start_sniff(wc);
@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
             }
         }
     }
-    wc->get_signature_analysis()->print_sessions_list();
+    cout << "Before destruct" << endl;
     delete wc;
     return 0;
 };

@@ -52,7 +52,6 @@ bool Config::get_next_signature(string& signature, string& type, int *priority) 
 
     current_element = current_element->NextSiblingElement();
     if (current_element == NULL) {
-        cout << "Tiny problem!!!" << endl;
         in_process = false;
     }
 

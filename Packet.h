@@ -17,25 +17,15 @@
 
 class Packet {
     pcap_pkthdr header;
-
     sniff_ethernet ethernet;
-
     sniff_ip ip;
-
     sniff_tcp tcp;
-
     sniff_udp udp;
-
     u_char *payload;
-
     int size_ip;
-
     int size_tcp;
-
     int size_payload;
-
     int size_udp;
-
 public:
 
     Packet();
@@ -44,20 +34,11 @@ public:
 
     void Parse(const pcap_pkthdr *head, const u_char *packet);
 
-    inline int get_size_payload() const {
-        return size_payload;
-    };
-
-    inline u_char* get_pload() const {
-        return payload;
-    };
-    
+    int get_size_payload() const { return size_payload; };
+    u_char* get_pload() const { return payload; };
     pcap_pkthdr get_header() const;
-    
     sniff_ip get_ip() const;
-    
     sniff_tcp get_tcp() const;
-    
     sniff_udp get_udp() const;
 };
 
