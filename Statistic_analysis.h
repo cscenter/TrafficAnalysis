@@ -7,6 +7,7 @@
 #include <vector>
 #include "Statistic_data.h"
 
+//EL заглавные буквы NONE и префикс TYPE_NONE
 enum traffic_type {
     none, upload, download, interactive
 };
@@ -49,7 +50,6 @@ class Statistic_analysis {
     int last_process_time;
     int host_ip;
     std::map<Session, Packages> pack_time;
-    Statistic_analysis(int process_interval, int period);
     void write_session_to_file(const Session& first, const Packages& second);
     void process_dead_sessions(int current_time);
     void process_all_sessions();
@@ -61,7 +61,10 @@ class Statistic_analysis {
     void print_solution(int solution);
 public:
     Statistic_analysis();
+    Statistic_analysis(int process_interval, int period);
+
     ~Statistic_analysis();
+
     void add_packet(const Packet& p);
 };
 

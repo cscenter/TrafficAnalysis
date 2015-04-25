@@ -13,13 +13,17 @@ Statistic_analysis::Statistic_analysis() {
     processed_sessions_counter = 0;
     process_interval = 10;
     last_process_time = 0;
+    //EL: inet_ntoa, inet_aton
     host_ip = 1684383936;
     mkdir("result", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 }
 
 bool Statistic_analysis::fill_state(Packages& p) {
 	int true_counter = 0, false_counter = 0, up_null_counter = 0, down_null_counter = 0, sum = 0;
-	for (int i = 0; i < p.uplink.size(); i++) {
+	
+    //EL сделать универсальный метод, которому передается ссылка (?) 
+    //на uplink или download
+    for (int i = 0; i < p.uplink.size(); i++) {
         sum += p.uplink[i];
 		if ((i + 1) % p.state_period == 0 || i == p.uplink.size() - 1) {
 		    //if (true_counter > false_counter) {
@@ -104,6 +108,8 @@ void Statistic_analysis::fill_if_not_equal(Packages& p) {
 
 void Statistic_analysis::print_solution(int solution) {
     cout << "ses " << processed_sessions_counter << " ";
+    //EL: эта часть проргаммы решает и куда-нибудь записывает
+    //другая часть программы откуда-то читает и выводит (?) на экран
     switch(solution) {
         case 0: cout << "download" << endl; break;
         case 1: cout << "browsing" << endl; break;
@@ -141,9 +147,11 @@ void Statistic_analysis::process_dead_sessions(int current_time) {
 void Statistic_analysis::process_all_sessions() {
     //cout << "Starting_to_process..." << endl;
     //cout << "Size of map before " << pack_time.size() << endl;
+    //EL: auto ?
     map<Session, Packages>::iterator it = pack_time.begin();
     while (it != pack_time.end()) {
          fill_if_not_equal(it->second);
+         //EL: этот кусок коду уже был. лучше вынести в отдельный метод.
          if ( fill_state(it->second) && fill_period_type(it->second)
             && !(it->second.downlink.size() < 3 ||it-> second.uplink.size() < 3) ) {
             make_solution(it->second);
@@ -193,7 +201,7 @@ void Statistic_analysis::add_packet(const Packet& p) {   //FILL MAP
             for (j = 0; j < p_time - *prev_sec - 1; j++) {
                 it->second.uplink.push_back(0);
             }
-        *prev_sec = p_time;
+            *prev_sec = p_time;
         }
         if (*prev_sec  == (int)(p_time)) {
             it->second.uplink[it->second.uplink.size() - 1] += p_size;

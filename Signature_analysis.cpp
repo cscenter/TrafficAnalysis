@@ -12,6 +12,7 @@ Session_data::Session_data() {
     session_solution = "";
 }
 
+//EL: inline в cpp файлы не работает
 inline void Session_data::to_upload(const Packet& pack) {
     upload.push_back(pack);
 }

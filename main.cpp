@@ -13,6 +13,9 @@
 
 using namespace std;
 
+
+//EL: заменить char* и char s[XXX] на string 
+//EL: поставить у методов const, там где это надо
 int main(int argc, char **argv) {
     Config config("my.xml");
     char protocol[] = "ip";
