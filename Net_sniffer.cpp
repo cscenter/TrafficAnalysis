@@ -75,8 +75,8 @@ void Net_sniffer::start_sniff(Working_classes* p){
 
     pcap_loop(handle, 0, got_packet, (u_char *)(p));
     //p->get_signature_analysis()->print_sessions_list();
-    pcap_freecode(&fp);
-    pcap_close(handle);
+    //pcap_freecode(&fp);
+    //pcap_close(handle);
 };
 
 void Net_sniffer::got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
@@ -84,7 +84,7 @@ void Net_sniffer::got_packet(u_char *args, const struct pcap_pkthdr *header, con
     Packet *value = new Packet();
     value->Parse(header, packet);
     if (!value->is_broken) {
-        //((Working_classes *) args)->get_signature_analysis()->add_packet(*value);
+        ((Working_classes *) args)->get_signature_analysis()->add_packet(*value);
         ((Working_classes *) args)->get_statistic_analysys()->add_packet(*value);
     }
 }
