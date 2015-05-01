@@ -17,8 +17,6 @@ Signature_configurations::Signature_configurations(const char* f_name) {
     current_element = document.RootElement()->FirstChildElement();
 }
 
-
-
 bool Signature_configurations::get_next_signature(string& signature, string& type, int *priority, int *num_pack) {
     if (!in_process) {
         return false;
@@ -60,18 +58,47 @@ bool Signature_configurations::get_next_signature(string& signature, string& typ
     if (current_element == NULL) {
         in_process = false;
     }
+    return true;
+}
 
+
+bool Signature_configurations::get_next_param(string& type, string& f_name, int *args) {
+   if (!in_process) {
+        return false;
+    }
+    TiXmlAttribute *atr = current_element->FirstAttribute();
+    int atr_num = 1;
+    while (atr != NULL) {
+        //string atr_name(atr->Name());
+        switch(atr_num) {
+            case 1 : type = *(new string(atr->Value()));
+                          break;
+            case 2 : f_name = *(new string(atr->Value()));
+                          break;
+            default : int pr;
+                      if (atr->QueryIntValue(&pr) == TIXML_SUCCESS) {
+                          args[atr_num - 1] = pr;
+                      }
+                      else {
+                          cout << "Tiny problem!!!" << endl;
+                          return false;
+                      }
+                      break;
+        }
+        atr = atr->Next();
+        atr_num++;
+    }
+    current_element = current_element->NextSiblingElement();
+    if (current_element == NULL) {
+        in_process = false;
+    }
     return true;
 }
 
 
 
 
-
-
-
  /*
-
 
     TiXmlAttribute *atr = current_element->FirstAttribute();
     if (atr == NULL) {

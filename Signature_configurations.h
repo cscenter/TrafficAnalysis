@@ -18,6 +18,8 @@ public:
 
     bool get_next_signature(std::string& signature, std::string& type, int *priority, int* num_pack);
 
+    bool get_next_param(std::string& type, std::string& f_name, int *args);
+
     bool is_ready() { return !in_process; }
 };
 
