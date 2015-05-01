@@ -18,9 +18,10 @@ Net_sniffer::Net_sniffer() {
 
 
 Net_sniffer::Net_sniffer(char *device, char *protocol, bool mode) {
-    dev = (char *) malloc(strlen(device) + 1);
-    memcpy(dev, device, strlen(device));
-    memcpy(filter_exp, protocol, strlen(device));
+    dev = (char *) malloc((sizeof(device)));
+    strcpy(dev, device);
+    filter_exp = (char *) malloc((sizeof(protocol)));
+    strcpy(filter_exp, protocol);
     is_live = mode;
 };
 
@@ -37,16 +38,12 @@ void Net_sniffer::start_sniff(Working_classes* p){
         }
     }
 
-    if (pcap_lookupnet(dev, &net, &mask, errbuf) == -1 && is_live) {
-        fprintf(stderr, "Couldn't get netmask for device %s: %s\n", dev, errbuf);
-        net = 0;
-        mask = 0;
-    }
-
-    printf("Device: %s\n", dev);
-    printf("Filter expression: %s\n\n\n", filter_exp);
-
     if (is_live) {
+        if (pcap_lookupnet(dev, &net, &mask, errbuf) == -1 && is_live) {
+            fprintf(stderr, "Couldn't get netmask for device %s: %s\n", dev, errbuf);
+            net = 0;
+            mask = 0;
+        }
         handle = pcap_open_live(dev, SNAP_LEN, 0, 1000, errbuf);
     }
     else {
@@ -60,6 +57,10 @@ void Net_sniffer::start_sniff(Working_classes* p){
         fprintf(stderr, "%s is not an Ethernet\n", dev);
         exit(EXIT_FAILURE);
     }
+
+    printf("Device: %s\n", dev);
+    printf("Filter expression: %s\n\n\n", filter_exp);
+
     // compile the filter expression
     /*if (pcap_compile(handle, &fp, filter_exp, 0, net) == -1) {
         fprintf(stderr, "Couldn't parse filter %s: %s\n",
@@ -72,11 +73,13 @@ void Net_sniffer::start_sniff(Working_classes* p){
             filter_exp, pcap_geterr(handle));
         exit(EXIT_FAILURE);
     }*/
-
-    pcap_loop(handle, 0, got_packet, (u_char *)(p));
-    //p->get_signature_analysis()->print_sessions_list();
-    //pcap_freecode(&fp);
-    //pcap_close(handle);
+    pcap_loop(handle, 10000, got_packet, (u_char *)(p));
+    p->get_signature_analysis()->print_sessions_list();
+    pcap_freecode(&fp);
+    if (handle == NULL) {
+        cout << "FAIL" << endl;
+    }
+    pcap_close(handle);
 };
 
 void Net_sniffer::got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
@@ -85,7 +88,7 @@ void Net_sniffer::got_packet(u_char *args, const struct pcap_pkthdr *header, con
     value->Parse(header, packet);
     if (!value->is_broken) {
         ((Working_classes *) args)->get_signature_analysis()->add_packet(*value);
-        ((Working_classes *) args)->get_statistic_analysys()->add_packet(*value);
+        //осторожно, я менял wc wc->get_statistic_analysys()->add_packet(*value);
     }
 }
 

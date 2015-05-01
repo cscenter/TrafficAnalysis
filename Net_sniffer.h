@@ -11,7 +11,7 @@ class Net_sniffer {
 private:
     char *dev;
     bool is_live;
-    char filter_exp[10];
+    char *filter_exp;
     char errbuf[PCAP_ERRBUF_SIZE];
     pcap_t *handle;
     bpf_program fp;
@@ -20,7 +20,7 @@ private:
 public:
     Net_sniffer();
     Net_sniffer(char *device, char *protocol, bool mode);
-    ~Net_sniffer() { delete dev; }
+    ~Net_sniffer() { delete dev; delete filter_exp;}
 
     void start_sniff(Working_classes *p);
 
