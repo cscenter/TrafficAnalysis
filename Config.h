@@ -7,12 +7,13 @@
 
 class Config {
 private:
+	//EL: string
     char file_name[100];
     bool in_process;
     TiXmlDocument document;
     TiXmlElement *current_element;
 public:
-
+	//EL: лучше сделать метод bool load(...)
     Config(const char* f_name);
 
     bool get_next_signature(std::string& signature, std::string& type, int *priority);

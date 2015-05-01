@@ -12,6 +12,7 @@ Session_data::Session_data() {
     session_solution = "";
 }
 
+//EL: inline в cpp файлы не работает
 inline void Session_data::to_upload(const Packet& pack) {
     upload.push_back(pack);
 }
@@ -107,18 +108,18 @@ void Signature_analysis::add_packet(const Packet& pack) {
     map<Session, Session_data>::iterator iter;
     iter = sessions_list.find(session);
     if (iter != sessions_list.end()) {
-        //if (sessions_list[session].has_solution()) {
-        //    return;
-        //}
+        if (sessions_list[session].has_solution()) {
+            return;
+        }
         sessions_list[session].to_upload(pack);
     }
     else {
         session.session_reverse(); // если уже есть -> добавить, если нет -> создать
         iter = sessions_list.find(session);
         if (iter != sessions_list.end()) {
-            //if (sessions_list[session].has_solution()) {
-            //    return;
-            //}
+            if (sessions_list[session].has_solution()) {
+                return;
+            }
             sessions_list[session].to_download(pack);
         }
         else {

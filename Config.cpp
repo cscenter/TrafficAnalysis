@@ -9,6 +9,7 @@ Config::Config(const char* f_name) {
     in_process = true;
     strcpy(file_name, f_name);
     bool load_status = document.LoadFile(file_name, TIXML_DEFAULT_ENCODING);
+    //EL:  вернуть код ошибки; здесь такое решение принять невозможно
     if (!load_status) {
         cout << "Have a load mistake!" << endl;
         exit(0);

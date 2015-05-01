@@ -5,7 +5,9 @@
 #include <map>
 #include "Session.h"
 #include <vector>
+#include "Statistic_data.h"
 
+//EL заглавные буквы NONE и префикс TYPE_NONE
 enum traffic_type {
     none, upload, download, interactive
 };
@@ -17,6 +19,7 @@ struct Packages {
     std::vector<bool> up_state;
     std::vector<bool> down_state;
     std::vector<traffic_type> period_type;
+    std::vector<double> type_percent;
     int state_period;
     int state_limit;
     int up_init_sec;
@@ -27,8 +30,9 @@ struct Packages {
     bool is_alive(int);
     int last_packet_time();
     Packages() {
+        type_percent.resize(4);
         up_init_sec = 0;
-        time_to_live = 10000;
+        time_to_live = 10;
         up_prev_sec = -1;
         down_init_sec = 0;
         down_prev_sec = -1;
@@ -40,27 +44,28 @@ struct Packages {
 
 
 class Statistic_analysis {
+    Statistic_data stat_data;
     int processed_sessions_counter;
     int process_interval;
     int last_process_time;
-    int period;
+    int host_ip;
     std::map<Session, Packages> pack_time;
-public:
-    //EL: разделить функции на публичные и приватные
-    Statistic_analysis();
-    ~Statistic_analysis();
-    Statistic_analysis(int process_interval, int period);
-    //EL: const &
-    void write_session_to_file(Session first, Packages second);
+    void write_session_to_file(const Session& first, const Packages& second);
     void process_dead_sessions(int current_time);
-    void add_packet(const Packet& p);
-    void print_map();
     void process_all_sessions();
     void dead_session_inform(const Session& ses) const;
-    void write_map();
     bool fill_state(Packages& p);
     bool fill_period_type(Packages& p);
-    void fill_if_not_equal(Packages& p); //если размеры uplink и downlink не равны, дозаполним меньший нулями 
+    void fill_if_not_equal(Packages& p); //если размеры uplink и downlink не равны, дозаполним меньший нулями
+    int make_solution(const Packages& p);
+    void print_solution(int solution);
+public:
+    Statistic_analysis();
+    Statistic_analysis(int process_interval, int period);
+
+    ~Statistic_analysis();
+
+    void add_packet(const Packet& p);
 };
 
 

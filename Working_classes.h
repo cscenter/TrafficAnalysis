@@ -11,7 +11,7 @@ class Working_classes {
 public:
     Working_classes(Config& config);
     ~Working_classes() {
-        sig_analysator->print_sessions_list();
+        //sig_analysator->print_sessions_list();
         delete stat_analysator;
         delete sig_analysator;
     };

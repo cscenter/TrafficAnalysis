@@ -34,7 +34,7 @@ private:
     std::vector<Packet> download;
 
 public:
-
+    //EL: очень странно, что все в public
     Session_data();
 
     bool has_solution() const { return solution; }
