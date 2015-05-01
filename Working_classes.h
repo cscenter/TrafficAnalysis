@@ -9,9 +9,9 @@ class Working_classes {
     Signature_analysis *sig_analysator;
     Statistic_analysis *stat_analysator;
 public:
-    Working_classes(Config& config);
+    Working_classes();
     ~Working_classes() {
-        //sig_analysator->print_sessions_list();
+        sig_analysator->print_sessions_list();
         delete stat_analysator;
         delete sig_analysator;
     };

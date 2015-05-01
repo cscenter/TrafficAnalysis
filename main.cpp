@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <fstream>
 
+
 #include "Net_sniffer.h"
 #include "Signature_analysis.h"
 
@@ -13,13 +14,11 @@
 
 using namespace std;
 
-
-//EL: заменить char* и char s[XXX] на string 
-//EL: поставить у методов const, там где это надо
 int main(int argc, char **argv) {
-    Config config("my.xml");
+    static MainConfig config("xml/configurations.xml");
+    //Config *main_configurations = Config.get_config("xml/confirations.xml");
     char protocol[] = "ip";
-    Working_classes *wc = new Working_classes(config);
+    Working_classes *wc = new Working_classes();
     if (argc == 2) {
         Net_sniffer *obj = new Net_sniffer(argv[1], protocol, true);
         obj->start_sniff(wc);
@@ -44,7 +43,7 @@ int main(int argc, char **argv) {
             }
         }
     }
-    //cout << "Before destruct" << endl;
+    cout << "Before destruct" << endl;
     delete wc;
     return 0;
 };
