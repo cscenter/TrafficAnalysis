@@ -10,7 +10,8 @@
 #include "Pack_headers_struct.h"
 #include "Packet.h"
 #include "Session.h"
-#include "Config.h"
+#include "Configuration.h"
+#include "Signature_configurations.h"
 
 
 
@@ -18,8 +19,9 @@ struct Traffic {
     std::string type;
     std::regex signature;
     int priority;
+    int num_pack;
 
-    Traffic(std::string sign, std::string t, int p) : signature(sign), type(t), priority(p) {
+    Traffic(std::string sign, std::string t, int p, int n) : signature(sign), type(t), priority(p), num_pack(n) {
     }
 };
 
@@ -30,18 +32,19 @@ private:
     int solution_priority;
     int solution_num_pack;
     std::string session_solution;
+
     std::vector<Packet> upload; // *Packet
     std::vector<Packet> download;
 
 public:
-    //EL: очень странно, что все в public
+
     Session_data();
 
     bool has_solution() const { return solution; }
 
     std::string get_session_solution() const { return session_solution; }
 
-    void set_session_solution(const std::string& solution, int priority);
+    void set_session_solution(const std::string& solution, int priority, int num_pack);
 
     void to_upload(const Packet& pack);
 
@@ -56,13 +59,17 @@ public:
 
 class Signature_analysis {
 
+    std::string mode;
+
+    std::string xml_file_name;
+
     std::map<Session, Session_data> sessions_list;
 
     std::vector<Traffic> sign_type_list;
 
 public:
 
-    Signature_analysis(Config& config);
+    Signature_analysis();
 
     void checking_for_signatures(const Packet& pack, Session_data& ) const;
 

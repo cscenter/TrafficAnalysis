@@ -12,23 +12,22 @@ Session_data::Session_data() {
     session_solution = "";
 }
 
-//EL: inline в cpp файлы не работает
-inline void Session_data::to_upload(const Packet& pack) {
+void Session_data::to_upload(const Packet& pack) {
     upload.push_back(pack);
 }
 
-inline void Session_data::to_download(const Packet& pack) {
+void Session_data::to_download(const Packet& pack) {
     download.push_back(pack);
 }
 
-void Session_data::set_session_solution(const string& solut, int priority) {
+void Session_data::set_session_solution(const string& solut, int priority, int num_pack) {
     if (solution_priority < priority) {
         session_solution = solut;
         solution_priority = priority;
-        solution_num_pack = 1;
+        solution_num_pack = num_pack;
     }
     if (solution_priority == priority && session_solution == solut) {
-        if (++solution_num_pack > 2) {
+        if (--solution_num_pack == 0) {
             solution = true;
         }
     }
@@ -74,13 +73,18 @@ void Session_data::clean_session_data() {
 }
 
 
-Signature_analysis::Signature_analysis(Config& config) {
+Signature_analysis::Signature_analysis() {
+    static MainConfig c("xml/configurations.xml");
+    Config *main_config = c.get_config("xml/configurations.xml");
+    string *args = new string[3];
+    bool state = main_config->get_sign_config(args);
+    Signature_configurations config(args[0].c_str());
     while (!config.is_ready()) {
         string sig, type;
-        int priority;
-        bool state = config.get_next_signature(sig, type, &priority);
+        int priority, num_pack;
+        state = config.get_next_signature(sig, type, &priority, &num_pack);
         if (state) {
-            Traffic traffic(sig, type, priority);
+            Traffic traffic(sig, type, priority, num_pack);
             sign_type_list.push_back(traffic);
         }
     }
@@ -96,7 +100,7 @@ void Signature_analysis::print_sessions_list() {
         Session_data s_date = iter->second;
         if (!s_date.has_solution()) {
             session.print_session();
-            out << endl << "/////////////////////////////////////////////////////////" << endl;
+            out << endl << "//////////////////////////////////////////////////////////////////////////////" << endl;
         }
         iter++;
     }
@@ -142,7 +146,7 @@ void Signature_analysis::checking_for_signatures(const Packet& pack, Session_dat
     string payload((char *)pack.get_pload());
     for ( int i = 0; i < sign_type_list.size(); i++ ) {
         if (regex_search(payload, sign_type_list[i].signature)) {
-           session.set_session_solution(sign_type_list[i].type, sign_type_list[i].priority);
+           session.set_session_solution(sign_type_list[i].type, sign_type_list[i].priority, sign_type_list[i].num_pack);
         }
     }
 }
