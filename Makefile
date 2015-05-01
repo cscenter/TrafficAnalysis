@@ -1,7 +1,7 @@
-main: main.o Net_sniffer.o Statistic_analysis.o Packet.o Session.o Working_classes.o Signature_analysis.o Config.o
-	g++ main.o Config.o Statistic_analysis.o Packet.o Net_sniffer.o Session.o Working_classes.o Signature_analysis.o tiny*.o -lpcap -o main 
+main: main.o Net_sniffer.o Statistic_analysis.o Packet.o Session.o Working_classes.o Signature_analysis.o Signature_configurations.o Configuration.o
+	g++ main.o Signature_configurations.o Configuration.o Statistic_analysis.o Packet.o Net_sniffer.o Session.o Working_classes.o Signature_analysis.o tiny*.o -lpcap -o main 
 	
-main.o: main.cpp Net_sniffer.h Statistic_analysis.h Packet.h Signature_analysis.h Config.h
+main.o: main.cpp Net_sniffer.h Statistic_analysis.h Packet.h Signature_analysis.h Signature_configurations.h
 	g++-4.9 -c main.cpp  -std=c++11 
 	
 Statistic_analysis.o: Statistic_analysis.cpp Statistic_analysis.h 
@@ -19,8 +19,11 @@ Net_sniffer.o: Net_sniffer.cpp Net_sniffer.h
 Session.o: Session.cpp Session.h
 	g++ -c Session.cpp -std=c++11
 	
-Config.o: Config.cpp Config.h
-	g++ -c -std=c++11 Config.cpp tinyxml/tinyxml.cpp tinyxml/tinystr.cpp tinyxml/tinyxmlerror.cpp tinyxml/tinyxmlparser.cpp
+Signature_configurations.o: Signature_configurations.cpp Signature_configurations.h
+	g++-4.9 -c -std=c++14 Signature_configurations.cpp tinyxml/tinyxml.cpp tinyxml/tinystr.cpp tinyxml/tinyxmlerror.cpp tinyxml/tinyxmlparser.cpp
+
+Configuration.o: Configuration.cpp Configuration.h
+	g++ -c -std=c++11 Configuration.cpp
 	
 Working_classes.o: Working_classes.cpp Working_classes.h
 	g++ -c Working_classes.cpp -std=c++11
