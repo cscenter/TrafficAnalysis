@@ -1,253 +1,311 @@
 #include <iostream>
 #include <fstream>
-#include <sys/socket.h>
 #include <netinet/in.h>
-#include <unistd.h>
+#include <climits>
 #include <arpa/inet.h>
 #include <sys/stat.h>
 #include "Statistic_analysis.h"
 
+
 using namespace std;
 
-
 Statistic_analysis::Statistic_analysis() {
-    Signature_configurations config("xml/stat.xml");
+    load_xml("xml/configurations.xml");
     processed_sessions_counter = 0;
-    process_interval = 10;
     last_process_time = 0;
-    mkdir("result", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    if (dev_mode == MODE_DEBUG) {
+        mkdir("result", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    }
+
+}
+void Statistic_analysis::load_xml(string name) {
+    const int int_settings_number = 5;
+    const int string_settings_number = 7;
+    const int params_number = 4;
+    static MainConfig c(name);
+    Config *main_config = c.get_config(name);
+    main_config->load_xml_file();
+    string *args = new string[string_settings_number];
+    int * params = new int[int_settings_number];
+    bool state = main_config->get_stat_config(args, params);
+    dev_mode = (args[1] == "debug") ? MODE_DEBUG :MODE_WORKING;
+    pcap_filename = args[2];
+    result_filename = args[3];
+    work_mode = (args[4] == "learning") ? MODE_LEARNING : MODE_DEFINITION;
+    learning_type = args[5];
+    in_addr temp;
+    int t = inet_aton(args[6].c_str(), &temp);
+    host_ip = temp.s_addr;
+    state_period = params[0];
+    state_limit = params[1];
+    session_time_limit = params[2];
+    none_limit = (double) params[3] / 100;
+    config = c.get_config(args[0]);
+    config->load_xml_file();
+    if (work_mode == MODE_DEFINITION) {
+        while (!config->is_ready()) {
+            string type;
+            double *data = new double[params_number];
+            config->get_next_param(type, data);
+            vector<double> v(data, data + params_number);
+            statistic_data.insert(pair<string, vector<double> >(type, v));
+        }
+    }
 }
 
-bool Statistic_analysis::fill_state(Packages& p) {
-	int true_counter = 0, false_counter = 0, up_null_counter = 0, down_null_counter = 0;
-	for (int i = 0; i < p.uplink.size(); i++) {
-        if (p.uplink[i] > p.state_limit) true_counter++;
-	    else false_counter++;
-        if (p.uplink[i] == 0) up_null_counter++;
-		if ((i + 1) % p.state_period == 0 || i == p.uplink.size() - 1) {
-		    //if (true_counter > false_counter) {
-		    if (true_counter  > 0) {
-			    p.up_state.push_back(true);
+
+
+
+bool Statistic_analysis::fill_state(Packages& p, const vector<int> & v, vector<bool>& state) {
+
+	int false_counter = 0, sum = 0;
+    for (int i = 0; i < v.size(); i++) {
+        sum += v[i];
+		if ((i + 1) % state_period == 0 || i == v.size() - 1) {
+		    if (sum > state_limit) {
+			    state.push_back(true);
 		    }
 		    else {
-			    p.up_state.push_back(false);
+                false_counter++;
+			    state.push_back(false);
 		    }
-		    true_counter = 0;
-		    false_counter = 0;
+		    sum = 0;
 	    }
     }
 
-	true_counter = 0;
-	false_counter = 0;
-	for (int i = 0; i < p.downlink.size(); i++) {
-        if (p.downlink[i]  == 0) down_null_counter++;
-	    if (p.downlink[i] > p.state_limit) true_counter++;
-		else false_counter++;
-		if ((i + 1) % p.state_period == 0 || i == p.downlink.size() - 1) {
-			if (true_counter > false_counter) {
-				p.down_state.push_back(true);
-			}
-			else {
-				p.down_state.push_back(false);
-			}
-			true_counter = 0;
-			false_counter = 0;
-		}
-
-
-	}
-
-	if (down_null_counter == p.downlink.size() && up_null_counter == p.uplink.size()) return false;
+	if (false_counter == state.size()) return false;
 	return true;
 }
 
 bool Statistic_analysis::fill_period_type(Packages& p) {
+    static int counter = 0;
+    counter++;
     int null_counter = 0;
+    traffic_type tr_t;
     for (int i = 0; i < p.up_state.size(); i++) {
         if (p.up_state[i] && p.down_state[i]) {
-            p.period_type.push_back(interactive);
+            tr_t = TYPE_INTERACTIVE;
         }
         else if (!p.up_state[i] && p.down_state[i]) {
-            p.period_type.push_back(download);
+            tr_t = TYPE_DOWNLOAD;
         }
         else if (p.up_state[i] && !p.down_state[i]) {
-            p.period_type.push_back(upload);
+            tr_t = TYPE_DOWNLOAD;
         }
         else {
-            p.period_type.push_back(none);
+            tr_t = TYPE_NONE;
             null_counter++;
         }
+        p.period_type.push_back(tr_t);
+        p.type_percent[(int)tr_t]++;
     }
-    if (null_counter == p.up_state.size()) return false;
+
+    for (int i = 0; i < p.type_percent.size(); i++) {
+        p.type_percent[i] /= p.up_state.size();
+    }
+    if (p.type_percent[TYPE_NONE] > none_limit) return false;
     return true;
 }
 
 
+ 			
+
 void Statistic_analysis::fill_if_not_equal(Packages& p) {
-	/*if (p.downlink.size() > p.uplink.size()) {
-	    for (int i = 0; i < p.downlink.size() - p.uplink.size(); i++) {
-	        p.uplink.push_back(0);
-	        cout << " up " << endl;
-	    }
-	} else {
-	    for (int i = 0; i < p.uplink.size() - p.downlink.size() + 1; i++) {
-	        p.downlink.push_back(0);
-	        cout << " down " << endl;
-	    }
-    } ??????? */
-
-
     if (p.downlink.size() > p.uplink.size()) p.uplink.resize(p.downlink.size());
     else if (p.downlink.size() < p.uplink.size()) p.downlink.resize(p.uplink.size());
 }
 
 
-void Statistic_analysis::process_dead_sessions(int current_time) {
-    //cout << "Starting_to_process..." << endl;
-    //cout << "Size of map before " << pack_time.size() << endl;
-    //EL:auto -std=c++11
-    map<Session, Packages>::iterator it = pack_time.begin();
-    while (it != pack_time.end()) {
-            if (!it->second.is_alive(current_time)) {
-                dead_session_inform(it->first);
-                fill_if_not_equal(it->second);
-                if (fill_state(it->second) && fill_period_type(it->second)) {
-                    write_session_to_file(it->first, it->second);
-                }
-                pack_time.erase(it++);
-                processed_sessions_counter++;
+bool Statistic_analysis::process_session(const Session& s, Packages& p) {
+    fill_if_not_equal(p);
+    bool flag1 = fill_state(p, p.uplink, p.up_state);
+    bool flag2 = fill_state(p, p.downlink, p.down_state);
+    if ((flag1 || flag2) && fill_period_type(p)
+        && (p.downlink.size() >= session_time_limit && p.uplink.size() >= session_time_limit )) {
+            if (dev_mode == MODE_DEBUG) write_session_to_file(s, p);
+            if (work_mode == MODE_LEARNING) config->write_stat_to_xml(learning_type, pcap_filename, p.type_percent);
+            if (work_mode == MODE_DEFINITION) {
+                string decision = get_nearest(p);
+                write_decision(decision);
             }
-            else it++;
+            processed_sessions_counter++;
+        }
+
+    processed_sessions_counter++;
+}
+
+
+void Statistic_analysis::write_decision(string decision) {
+    cout << "HEAR" << endl;
+    ofstream out_up(result_filename, ios::app);
+    out_up << pcap_filename << " " << decision << endl;
+}
+
+void Statistic_analysis::process_dead_sessions(int current_time) {
+    cout << " I WAS HEAR" << endl;
+    auto it = pack_time.begin();
+    while (it != pack_time.end()) {
+        if (!it->second.is_alive(current_time, time_to_live)) {
+            process_session(it->first, it->second);
+            pack_time.erase(it++);
+        }
+        else it++;
     }
-    //cout << "Size of map after " << pack_time.size() << endl;
 }
 
 
 void Statistic_analysis::process_all_sessions() {
-    //cout << "Starting_to_process..." << endl;
-    //cout << "Size of map before " << pack_time.size() << endl;
-    map<Session, Packages>::iterator it = pack_time.begin();
+    auto it = pack_time.begin();
     while (it != pack_time.end()) {
-        fill_if_not_equal(it->second);
-         if (fill_state(it->second) && fill_period_type(it->second)) {
-            write_session_to_file(it->first, it->second);
-        }
+        process_session(it->first, it->second);
         pack_time.erase(it++);
-        processed_sessions_counter++;
-
     }
-    //cout << "Size of map after " << Pack_time.size() << endl;
+
 }
 
 
-bool Packages::is_alive(int current_time) {
-    return current_time - last_packet_time() < time_to_live;
+bool Packages::is_alive(int current_time, int time_to_live) {
+    return (current_time - last_packet_time()) < time_to_live;
 }
 
 int Packages::last_packet_time() {
-        return (up_prev_sec > down_prev_sec) ? up_prev_sec : down_prev_sec;
+    return (uplink.size() > downlink.size()) ? uplink.size() + init_sec : downlink.size() + init_sec;
 }
 
-Statistic_analysis::~Statistic_analysis() {
-    //cout << "destructor " << endl;
-    process_all_sessions();
+
+
+
+void Statistic_analysis::add_second(vector<int>& v, Packages& p, int p_time, int size) {
+    if (p.init_sec == 0) p.init_sec = p_time;
+    if (p_time > p.init_sec + v.size() - 1) {
+        v.resize(p_time - p.init_sec + 1);
+    }
+    v[v.size() - 1] += size;
 }
 
 void Statistic_analysis::add_packet(const Packet& p) {   //FILL MAP
-        int p_time = p.get_header().ts.tv_sec;
-        if (p_time - last_process_time > process_interval) {
-            process_dead_sessions(p_time);
-            last_process_time = p_time;
-        }
+    int p_time = p.get_header().ts.tv_sec;
+    if (p_time - last_process_time > process_interval && last_process_time != 0) {
+        process_dead_sessions(p_time);
+        last_process_time = p_time;
+    }
+    int p_size = p.get_size_payload();
+    Session temp_ses(p);
+    bool is_reversed = false;
+    if (temp_ses.ip_src.s_addr != host_ip) {
+        is_reversed = true;
+        temp_ses.session_reverse();
+    }
+    map<Session, Packages>::iterator it = pack_time.find(temp_ses);
 
-        int p_size = p.get_size_payload();
-        Session temp_ses(p);
-        Session temp_ses2(p);
-        temp_ses2.session_reverse();
-        map<Session, Packages>::iterator it = pack_time.find(temp_ses);
-        map<Session, Packages>::iterator it2 = pack_time.find(temp_ses2);
+    if (!is_reversed && it != pack_time.end()) {   //пришел пакет в uplink
+        add_second(it->second.uplink, it->second, p_time, p_size);
 
-
-        if (it != pack_time.end()) {
-            //EL из за длинных названий тяжело читать
-            int * prev_sec = &(it->second.up_prev_sec);
-            if (p_time > *prev_sec + 1 && *prev_sec != -1 ) {
-            	int j;
-		        for (j = 0; j < p_time - *prev_sec - 1; j++) {
-		            it->second.uplink.push_back(0);
-		        }
-            *prev_sec = p_time;
-            }
-            if (*prev_sec  == (int)(p_time)) {
-            	it->second.uplink[it->second.uplink.size() - 1] += p_size;
-            }
-            else {
-                *prev_sec = p_time;
-                it->second.uplink.push_back(p_size);
-            }
-        }
-        else if (it2 != pack_time.end()) {
-            if (it2->second.up_init_sec == 0) it2->second.up_init_sec = p_time;
-            if (p_time > it2->second.down_prev_sec + 1 && it2->second.down_prev_sec != -1 ) {
-                int j;
-                for (j = 0; j < p_time - it2->second.down_prev_sec  - 1; j++) {
-                   it2->second.downlink.push_back(0);
-                }
-                //it2->second.down_prev_sec = p_time;
-            }
-            if (it2->second.down_prev_sec == (int)(p_time)) {
-                it2->second.downlink[it2->second.downlink.size() - 1] += p_size;
-            }
-            else {
-                 it2->second.down_prev_sec = p_time;
-                 it2->second.downlink.push_back(p_size);
-            }
+    } else if (is_reversed && it != pack_time.end()) {   //пришел пакет в downlink
+        add_second(it->second.downlink, it->second, p_time, p_size);
+    } else {
+        Packages& new_ses = pack_time[temp_ses];
+        if (!is_reversed) {
+            add_second(new_ses.uplink, new_ses, p_time, p_size);
         }
         else {
-          // ?  pack_time[temp_ses].ip = p_ip;
-            pack_time[temp_ses].uplink.push_back(p_size);
-            pack_time[temp_ses].up_init_sec = p_time;
-            pack_time[temp_ses].up_prev_sec = p_time;
+            add_second(new_ses.downlink, new_ses, p_time, p_size);
         }
-
-
-}
-
-void Statistic_analysis::print_map() {
-    ofstream out("result/mymap.txt");
-    out << "MAP SIZE " << pack_time.size();
-    map<Session, Packages>::iterator it;
-    for(it = pack_time.begin(); it != pack_time.end(); it++) {
-        out << "src_ip " << inet_ntoa(it->first.ip_src) << endl;
-        out << "dst_ip " << inet_ntoa(it->first.ip_dst) << endl;
-        out << "src_port " << ntohs(it->first.port_src) << endl;
-        out << "dst_port " << ntohs(it->first.port_dst) << endl;
-        switch(it->first.protocol) {
-            case IPPROTO_TCP:
-                out << "TCP" << endl;
-                break;
-            case IPPROTO_UDP:
-                out << "UDP" << endl;
-                break;
-        }
-        out << it->second.uplink.size() << endl;
-        out << it->second.downlink.size() << endl;
     }
-    out.close();
+
 }
+
 
 void Statistic_analysis::dead_session_inform(const Session & ses) const {
     cout << "Session from ip " << inet_ntoa(ses.ip_src);
-    cout << " to " << inet_ntoa(ses.ip_dst);
+    cout << " to " << inet_ntoa(ses.ip_dst) << " ";
+    cout << ses.port_src << " ";
+    cout << ses.port_dst << " ";
     cout << "  IS DEAD" << endl << endl;
-
+    
 }
 
-void Statistic_analysis::write_session_to_file(Session first, Packages second) {
-    if (second.downlink.size() < 3 || second.uplink.size() < 3) { return; }
+
+bool Statistic_analysis::hosts_equal(Session const &s1, Session const &s2) {
+    if (s1.ip_src.s_addr == s2.ip_src.s_addr && s1.ip_dst.s_addr == s2.ip_dst.s_addr) {
+        return true;
+    }
+    return false;
+}
+
+
+void Statistic_analysis::move_session(const vector<int>& src, const int src_init_sec,
+                                      vector<int>& dst, const int dst_init_sec) {
+
+    if (src_init_sec + src.size() - dst_init_sec > dst.size()) {
+        dst.resize(src_init_sec + src.size() - dst_init_sec);
+    }
+    for (int i = 0; i < src.size(); i++) {
+        dst[src_init_sec - dst_init_sec + i] += src[i];
+    }
+}
+
+void Statistic_analysis::merge_sessions() {
+    auto prev = pack_time.begin();
+    auto cur = pack_time.begin();
+    cur++;
+    bool flag = false;
+    while (cur != pack_time.end()) {
+        if (hosts_equal(prev->first, cur->first)) {
+            if (cur->second.init_sec < prev->second.init_sec) { // сессия cur началась раньше
+                move_session(prev->second.uplink, prev->second.init_sec, cur->second.uplink, cur->second.init_sec);
+                move_session(prev->second.downlink, prev->second.init_sec, cur->second.downlink, cur->second.init_sec);
+                pack_time.erase(prev++);
+                cur++;
+            }
+            else {
+                move_session(cur->second.uplink, cur->second.init_sec, prev->second.uplink, prev->second.init_sec);
+                move_session(cur->second.downlink, cur->second.init_sec, prev->second.downlink, prev->second.init_sec);
+                pack_time.erase(cur++);
+            }
+        }
+        else {
+            prev = cur;
+            cur++;
+        }
+    }
+}
+Statistic_analysis::~Statistic_analysis() {
+    merge_sessions();
+    process_all_sessions();
+}
+
+string Statistic_analysis::get_nearest(Packages& p) {
+    int min = INT_MAX;
+    string min_name;
+    for(auto it : statistic_data) {
+        double d = 0;
+        for (int j = 0; j < p.type_percent.size(); j++) {
+            d += (p.type_percent[j] - it.second[j]) * (p.type_percent[j] - it.second[j]);
+        }
+        if (d < min) {
+            min_name = it.first;
+            min = d;
+        }
+    }
+    return min_name;
+}
+
+void Statistic_analysis::write_session_to_file(const Session& first, const Packages& second) {
     string file_name = "result/ses" + to_string(processed_sessions_counter) + "_uplink.txt";
     ofstream out_up(file_name);
-
+    /*out_up << first.ip_src.s_addr << endl;
+    out_up << " to " << first.ip_dst.s_addr << endl;
+    out_up << first.port_src <<  " " << first.port_dst << endl;
+    switch(first.protocol) {
+        case IPPROTO_TCP:
+            out_up << "TCP" << endl;
+            break;
+        case IPPROTO_UDP:
+            out_up << "UDP" << endl;
+            break;
+    }
+    */
     for (int i = 0; i < second.uplink.size(); i++) {
         out_up << i << " " << second.uplink[i] << endl;
     }
@@ -258,10 +316,10 @@ void Statistic_analysis::write_session_to_file(Session first, Packages second) {
         out_down << i << " " <<  second.downlink[i] << endl;
     }
     out_down.close();
-    int period = second.state_period;
+    int period = state_period;
     file_name = "result/ses" + to_string(processed_sessions_counter) + "_up_state.txt";
     ofstream out_up_state(file_name);
-    out_up_state << 0 << " " << second.up_state[0] << endl;
+    if (second.up_state.size() != 0) out_up_state << 0 << " " << second.up_state[0] << endl;
 
     for (int i = 0; i < second.up_state.size(); i++) {
         out_up_state << (i + 1) * period - 1 << " " << second.up_state[i] << endl;
@@ -270,7 +328,7 @@ void Statistic_analysis::write_session_to_file(Session first, Packages second) {
 
     file_name = "result/ses" + to_string(processed_sessions_counter) + "_down_state.txt";
     ofstream out_down_state(file_name);
-    out_down_state << 0 << " " << second.down_state[0] << endl;
+    if (second.down_state.size() != 0) out_down_state << 0 << " " << second.down_state[0] << endl;
     for (int i = 0; i < second.down_state.size(); i++) {
         out_down_state << (i + 1) * period - 1 << " " << second.down_state[i] << endl;
     }
@@ -278,7 +336,8 @@ void Statistic_analysis::write_session_to_file(Session first, Packages second) {
 
     file_name = "result/ses" + to_string(processed_sessions_counter) + "_period_types.txt";
     ofstream out_period_types(file_name);
-    out_period_types << 0 << " " << second.period_type[0] << endl;
+
+    if (second.period_type.size() != 0) out_period_types << 0 << " " << second.period_type[0] << endl;
     for (int i = 0; i < second.period_type.size(); i++) {
         out_period_types << (i + 1) * period - 1 << " " << second.period_type[i] << endl;
         out_period_types << (i + 1) * period - 1 << " " << second.period_type[i] << endl;
@@ -286,28 +345,3 @@ void Statistic_analysis::write_session_to_file(Session first, Packages second) {
     out_period_types.close();
 
 }
-
-void Statistic_analysis::write_map() {
-    cout << "size = " << pack_time.size() << endl;
-    map<Session, Packages>::iterator it;
-    int counter = 0;
-    for(it = pack_time.begin(); it != pack_time.end(); it++) {
-        string uplink_file_name = "ses_" + to_string(counter) + "_uplink.txt";
-        ofstream out_up(uplink_file_name);
-        cout << "session number " << counter << " ip_src " << inet_ntoa(it->first.ip_src) << endl;
-        for (int i = 0; i < it->second.uplink.size(); i++) {
-                out_up << i << " " << it->second.uplink[i] << endl;
-        }
-        out_up.close();
-        string downlink_file_name = "ses_" + to_string(counter) + "_downlink.txt";
-        ofstream out_down(downlink_file_name);
-        for (int i = 0; i < it->second.downlink.size(); i++) {
-                out_down << i << " " << it->second.downlink[i] << endl;
-                out_down << i + 1 << " " << it->second.downlink[i] << endl;
-        }
-        out_down.close();
-        counter++;
-    }
-}
-
-
