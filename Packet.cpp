@@ -6,7 +6,6 @@ Packet::Packet() {
 };
 
 void Packet::Parse(const struct pcap_pkthdr *head, const u_char *packet) {
-    //Split_packet s_pack;
     header = *head;
     ethernet = *(sniff_ethernet*)packet;
     ip = *(sniff_ip *)(packet + SIZE_ETHERNET);
@@ -15,7 +14,6 @@ void Packet::Parse(const struct pcap_pkthdr *head, const u_char *packet) {
         is_broken = true;
         return; //s_pack;
     }
-
     //EL minor можно повторяющийся код написать один раз, например,
     //вынести его в отдельную функцию
     switch(ip.ip_p) {
@@ -26,7 +24,7 @@ void Packet::Parse(const struct pcap_pkthdr *head, const u_char *packet) {
 
             if (size_tcp < 20) {
                 is_broken = true;
-                return; // s_pack;
+                return;
             }
             size_payload = ntohs(ip.ip_len) - (size_ip + size_tcp);
             payload = new u_char[size_payload];
@@ -34,12 +32,12 @@ void Packet::Parse(const struct pcap_pkthdr *head, const u_char *packet) {
             break;
         case IPPROTO_UDP:
             is_broken = false;
-            udp = *(sniff_udp*)(packet + SIZE_ETHERNET + size_ip); //как-то нужно ведь смотреть длину заголовка
+            udp = *(sniff_udp*)(packet + SIZE_ETHERNET + size_ip);
             size_udp = UDP_LENGTH;
 
             if (size_udp < 8) {
                 is_broken = true;
-                return; // s_pack;
+                return;
             }
             size_payload = ntohs(ip.ip_len) - (size_ip + size_udp);
             payload = new u_char[size_payload];
@@ -47,11 +45,9 @@ void Packet::Parse(const struct pcap_pkthdr *head, const u_char *packet) {
             break;
         default:
             is_broken = true;
-            return; // s_pack;
+            return;
     }
-
-    // EL лишнее копирование
-    return; //s_pack;
+    return;
 };
 
 
