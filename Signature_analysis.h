@@ -11,7 +11,6 @@
 #include "Packet.h"
 #include "Session.h"
 #include "Configuration.h"
-#include "Signature_configurations.h"
 
 
 
@@ -32,11 +31,9 @@ private:
     int solution_priority;
     int solution_num_pack;
     std::string session_solution;
-
-    std::vector<Packet> upload; // *Packet
-    std::vector<Packet> download;
-
 public:
+    std::vector<const Packet*> upload;
+    std::vector<const Packet*> download;
 
     Session_data();
 
@@ -46,9 +43,13 @@ public:
 
     void set_session_solution(const std::string& solution, int priority, int num_pack);
 
-    void to_upload(const Packet& pack);
+    void to_upload(const Packet* pack);
 
-    void to_download(const Packet& pack);
+    void to_download(const Packet* pack);
+
+    std::vector<const Packet*>& get_upload() { return upload; }
+
+    std::vector<const Packet*>& get_download() { return download; }
 
     void print_payload(int length, const u_char *payload) const;
 
@@ -67,17 +68,19 @@ class Signature_analysis {
 
     std::vector<Traffic> sign_type_list;
 
+    void checking_for_signatures(const Packet* pack, Session_data& ) const;
+
+    std::ofstream out;
+
 public:
 
     Signature_analysis();
-
-    void checking_for_signatures(const Packet& pack, Session_data& ) const;
 
     std::map<Session, Session_data>& get_map() { return sessions_list; } //&?
 
     void print_sessions_list();
 
-    void add_packet(const Packet& pack);
+    void add_packet(const Packet* pack);
 
 };
 
