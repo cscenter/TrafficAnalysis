@@ -15,13 +15,16 @@
 using namespace std;
 
 int main(int argc, char **argv) {
-    static MainConfig config("xml/configurations.xml");
-    //Config *main_configurations = Config.get_config("xml/confirations.xml");
-    char protocol[] = "ip";
+    string filter_expr = "ip";
     Working_classes *wc = new Working_classes();
     if (argc == 2) {
-        Net_sniffer *obj = new Net_sniffer(argv[1], protocol, true);
-        obj->start_sniff(wc);
+        Net_sniffer *obj = new Net_sniffer(argv[1], filter_expr, true);
+        try {
+            obj->start_sniff(wc);
+        }
+        catch (Net_sniffer_exception *e) {
+            cout << e->get_exception_reason() << endl;
+        }
     }
     else {
         if (argc == 3) {
@@ -29,8 +32,13 @@ int main(int argc, char **argv) {
             if (strcmp(argv[2], "offline") == 0) {
                 mode = false;
             }
-            Net_sniffer *obj = new Net_sniffer(argv[1], protocol, mode);
-            obj->start_sniff(wc);
+            Net_sniffer *obj = new Net_sniffer(argv[1], filter_expr, mode);
+            try {
+                obj->start_sniff(wc);
+            }
+            catch (Net_sniffer_exception *e) {
+                cout << e->get_exception_reason() << endl;
+            }
         }
         else {
             if (argc > 3) {
@@ -39,11 +47,15 @@ int main(int argc, char **argv) {
             }
             else {
                 Net_sniffer *obj = new Net_sniffer();
-                obj->start_sniff(wc);
+                try {
+                    obj->start_sniff(wc);
+                }
+                catch (Net_sniffer_exception *e) {
+                    cout << e->get_exception_reason() << endl;
+                }
             }
         }
     }
-    cout << "Before destruct" << endl;
     delete wc;
     return 0;
 };
