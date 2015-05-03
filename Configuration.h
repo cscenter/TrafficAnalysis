@@ -4,7 +4,7 @@
 #include <string>
 #include "tinyxml/tinyxml.h"
 #include "tinyxml/tinystr.h"
-
+#include <vector>
 class Config {
 private:
     static Config *config;
@@ -22,11 +22,15 @@ public:
 
     bool get_sign_config(std::string *config_list);
 
-    bool get_next_param(std::string& type, std::string& f_name, int *args);
+    bool get_next_param(std::string& type, double *args);
 
     bool get_next_signature(std::string& signature, std::string& type, int *priority, int *num_pack);
 
     bool is_ready() const { return !in_process; }
+
+    void write_stat_to_xml(const std::string& traffic_type, const std::string& pcap_filename,
+                                                 const std::vector<double>& data);
+    bool get_stat_config(std::string *config_list, int * params);
 };
 
 
