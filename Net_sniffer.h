@@ -5,13 +5,20 @@
 #include <string>
 #include "Working_classes.h"
 
+class Net_sniffer_exception : public std::exception {
+private:
+    std::string reason_exception;
+public:
+    Net_sniffer_exception(std::string reason) : reason_exception(reason) {}
+    std::string get_exception_reason() { return reason_exception; }
+};
 
 
 class Net_sniffer {
 private:
     char *dev;
     bool is_live;
-    char *filter_exp;
+    std::string filter_exp;
     char errbuf[PCAP_ERRBUF_SIZE];
     pcap_t *handle;
     bpf_program fp;
@@ -19,8 +26,8 @@ private:
     bpf_u_int32 net;
 public:
     Net_sniffer();
-    Net_sniffer(char *device, char *protocol, bool mode);
-    ~Net_sniffer() { delete dev; delete filter_exp;}
+    Net_sniffer(char *device, std::string protocol, bool mode);
+    ~Net_sniffer() { delete dev;}
 
     void start_sniff(Working_classes *p);
 
