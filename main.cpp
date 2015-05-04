@@ -14,6 +14,10 @@
 
 using namespace std;
 
+//EL: проверить на const у параметров и у МЕТОДОВ!
+
+//EL: убрать одинаковые куски
+
 int main(int argc, char **argv) {
     string filter_expr = "ip";
     Working_classes wc;

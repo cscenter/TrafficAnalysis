@@ -5,6 +5,7 @@
 #include <string>
 #include "Working_classes.h"
 
+// what()
 class Net_sniffer_exception : public std::exception {
 private:
     std::string reason_exception;
@@ -16,6 +17,7 @@ public:
 
 class Net_sniffer {
 private:
+    //char dev[256];
     char *dev;
     bool is_live;
     std::string filter_exp;
@@ -26,6 +28,7 @@ private:
     bpf_u_int32 net;
 public:
     Net_sniffer();
+    // const & protocol
     Net_sniffer(char *device, std::string protocol, bool mode);
     ~Net_sniffer() { delete dev;}
 

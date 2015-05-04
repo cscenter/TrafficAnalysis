@@ -9,9 +9,12 @@
 
 using namespace std;
 
+// Net_sniffer() : is_live(true), filter_exp("ip")
 Net_sniffer::Net_sniffer() {
     strcpy(dev, "");
     is_live = true;
+    // filter_exp = "ip";
+    // filter_exp = string("ip");
     filter_exp = *(new string("ip"));
 };
 
@@ -30,7 +33,11 @@ void Net_sniffer::start_sniff(Working_classes* p){
         dev = pcap_lookupdev(errbuf);
         if (dev == NULL) {
             string reason("Couldn't find default device");
+            //EL: ???
             reason += *(new string(errbuf));
+            //EL: throw Net_sniffer_exception(reason);
+
+            //EL: и в остальных местах тоже
             throw new Net_sniffer_exception(reason);
         }
     }
@@ -48,6 +55,8 @@ void Net_sniffer::start_sniff(Working_classes* p){
     if (handle == NULL) {
         string reason("Couldn't open device ");
         reason += *(new string(errbuf));
+
+        // throw Net_sniffer_exception(string("Couldn't open device ") + errbuf);
         throw new Net_sniffer_exception(reason);
     }
     if (pcap_datalink(handle) != DLT_EN10MB) {
@@ -74,8 +83,11 @@ void Net_sniffer::start_sniff(Working_classes* p){
 void Net_sniffer::got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
 
     Packet *pack = new Packet();
+    //EL: Parse code convention?
     pack->Parse(header, packet);
     if (!pack->is_broken) {
+        //Working_classes *wc = (Working_classes*) args;
+        //wc->get..
         ((Working_classes *) args)->get_statistic_analysys()->add_packet(pack);
         ((Working_classes *) args)->get_signature_analysis()->add_packet(pack);
 

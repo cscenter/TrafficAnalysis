@@ -4,7 +4,7 @@
 #include "Signature_analysis.h"
 #include "Statistic_analysis.h"
 
-
+//EL: динамическое выделение не нужно
 class Working_classes {
     Signature_analysis *sig_analysator;
     Statistic_analysis *stat_analysator;

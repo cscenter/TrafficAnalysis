@@ -8,6 +8,7 @@
 #include <string>
 #include "Configuration.h"
 
+//EL: в остальном коде имена типов написаны с большой буквы, например, Packages
 enum traffic_type {
     TYPE_NONE, TYPE_UPLOAD, TYPE_DOWNLOAD, TYPE_INTERACTIVE
 };
@@ -40,6 +41,10 @@ struct Packages {
 enum development_mode {MODE_WORKING, MODE_DEBUG};
 enum working_mode {MODE_LEARNING, MODE_DEFINITION};
 
+
+//EL: в объявлении класса отделить префиксом (например, dbg_) и 
+//EL: положением в класее методы и поля, которые используются только 
+//EL: в режиме debug
 class Statistic_analysis {
     Config *config;
     int processed_sessions_counter;

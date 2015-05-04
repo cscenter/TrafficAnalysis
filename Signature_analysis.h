@@ -20,6 +20,7 @@ struct Traffic {
     int priority;
     int num_pack;
 
+    //EL: const string&
     Traffic(std::string sign, std::string t, int p, int n) : signature(sign), type(t), priority(p), num_pack(n) {
     }
 };
@@ -61,7 +62,7 @@ public:
 class Signature_analysis {
 
     std::string mode;
-
+    //EL: классы не должны знать про файлы конфига
     std::string xml_file_name;
 
     std::map<Session, Session_data> sessions_list;

@@ -27,6 +27,8 @@ void Statistic_analysis::load_xml(string name) {
     Config *main_config = c.get_config(name);
     main_config->load_xml_file();
     string *args = new string[string_settings_number];
+    //EL: vector
+    //EL: самоописывающийся код, а не args.
     int * params = new int[int_settings_number];
     bool state = main_config->get_stat_config(args, params);
     dev_mode = (args[1] == "debug") ? MODE_DEBUG :MODE_WORKING;

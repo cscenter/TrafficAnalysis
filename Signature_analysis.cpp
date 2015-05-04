@@ -34,6 +34,7 @@ void Session_data::set_session_solution(const string& solut, int priority, int n
 }
 
 Signature_analysis::Signature_analysis() {
+    //EL: не самый удобный способ работать с конфигом
     string f_name("xml/configurations.xml");
     static MainConfig c(f_name); // вызывается конструктор наследного класса, вызывается конструктор базового
 
