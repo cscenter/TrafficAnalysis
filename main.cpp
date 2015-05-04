@@ -16,15 +16,16 @@ using namespace std;
 
 int main(int argc, char **argv) {
     string filter_expr = "ip";
-    Working_classes *wc = new Working_classes();
+    Working_classes wc;
     if (argc == 2) {
         Net_sniffer *obj = new Net_sniffer(argv[1], filter_expr, true);
         try {
-            obj->start_sniff(wc);
+            obj->start_sniff(&wc);
         }
         catch (Net_sniffer_exception *e) {
             cout << e->get_exception_reason() << endl;
         }
+        delete obj;
     }
     else {
         if (argc == 3) {
@@ -34,11 +35,12 @@ int main(int argc, char **argv) {
             }
             Net_sniffer *obj = new Net_sniffer(argv[1], filter_expr, mode);
             try {
-                obj->start_sniff(wc);
+                obj->start_sniff(&wc);
             }
             catch (Net_sniffer_exception *e) {
                 cout << e->get_exception_reason() << endl;
             }
+            delete obj;
         }
         else {
             if (argc > 3) {
@@ -48,14 +50,14 @@ int main(int argc, char **argv) {
             else {
                 Net_sniffer *obj = new Net_sniffer();
                 try {
-                    obj->start_sniff(wc);
+                    obj->start_sniff(&wc);
                 }
                 catch (Net_sniffer_exception *e) {
                     cout << e->get_exception_reason() << endl;
                 }
+                delete obj;
             }
         }
     }
-    delete wc;
     return 0;
 };

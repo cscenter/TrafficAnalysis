@@ -1,8 +1,21 @@
 #include "Packet.h"
-
 using namespace std;
 
 Packet::Packet() {
+};
+
+Packet::Packet(const Packet& pack) {
+    header = pack.header;
+    ethernet = pack.ethernet;
+    ip = pack.ip;
+    tcp = pack.tcp;
+    udp = pack.udp;
+    payload = new u_char[pack.size_payload];
+    memcpy(payload, pack.payload, pack.size_payload);
+    size_ip = pack.size_ip;
+    size_tcp = pack.size_tcp;
+    size_payload = pack.size_payload;
+    size_udp = pack.size_udp;
 };
 
 void Packet::Parse(const struct pcap_pkthdr *head, const u_char *packet) {
@@ -28,7 +41,7 @@ void Packet::Parse(const struct pcap_pkthdr *head, const u_char *packet) {
             }
             size_payload = ntohs(ip.ip_len) - (size_ip + size_tcp);
             payload = new u_char[size_payload];
-            memmove(payload, ( (u_char *)(packet + SIZE_ETHERNET + size_ip + size_tcp) ), size_payload);
+            memcpy(payload, ( (u_char *)(packet + SIZE_ETHERNET + size_ip + size_tcp) ), size_payload);
             break;
         case IPPROTO_UDP:
             is_broken = false;

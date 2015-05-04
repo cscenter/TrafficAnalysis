@@ -1,4 +1,7 @@
 <?xml version="1.0" ?>
 <statistic>
-	<s type="BOWSING" none="" upload="" download="" interactive="" file_name="" />
+    <s type="downloading" file_name="ubuntu.pcap" none="0" upload="0" download="1" interactive="0" />
+    <s type="browsing" file_name="tcp.pcap" none="0.755102" upload="0" download="0.0612245" interactive="0.183673" />
+    <s type="browsing" file_name="tcp.pcap" none="0.627451" upload="0" download="0.0980392" interactive="0.27451" />
+    <s type="browsing" file_name="tcp.pcap" none="0.784314" upload="0" download="0.0588235" interactive="0.156863" />
 </statistic>

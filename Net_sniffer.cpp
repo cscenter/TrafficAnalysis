@@ -26,7 +26,6 @@ Net_sniffer::Net_sniffer(char *device, string protocol, bool mode) {
 
 
 void Net_sniffer::start_sniff(Working_classes* p){
-
     if ( dev == NULL) {
         dev = pcap_lookupdev(errbuf);
         if (dev == NULL) {
@@ -65,7 +64,7 @@ void Net_sniffer::start_sniff(Working_classes* p){
 
     if (pcap_setfilter(handle, &fp) == -1) {
         //fprintf(stderr, "Couldn't install filter %s: %s\n", filter_exp.c_str(), pcap_geterr(handle));
-        throw new Net_sniffer_exception("Couldn't install filte");
+        throw new Net_sniffer_exception("Couldn't install filter");
     }
     pcap_loop(handle, 0, got_packet, (u_char *)(p));
     pcap_freecode(&fp);
@@ -74,11 +73,13 @@ void Net_sniffer::start_sniff(Working_classes* p){
 
 void Net_sniffer::got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
 
-    Packet *value = new Packet();
-    value->Parse(header, packet);
-    if (!value->is_broken) {
-        ((Working_classes *) args)->get_signature_analysis()->add_packet(value);
-        //осторожно, я менял wc wc->get_statistic_analysys()->add_packet(*value);
+    Packet *pack = new Packet();
+    pack->Parse(header, packet);
+    if (!pack->is_broken) {
+        ((Working_classes *) args)->get_statistic_analysys()->add_packet(pack);
+        ((Working_classes *) args)->get_signature_analysis()->add_packet(pack);
+
     }
+    //delete pack;
 }
 

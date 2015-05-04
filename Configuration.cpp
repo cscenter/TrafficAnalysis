@@ -66,8 +66,12 @@ bool Config::get_next_param(string& type, double *args) {
    TiXmlAttribute *atr = current_element->FirstAttribute();
    int atr_num = 1;
    while (atr != NULL) {
+        string * s;
         switch(atr_num) {
-            case 1 : type = *(new string(atr->Value()));
+            case 1 : s = new string(atr->Value());
+                     type = *s;
+                     delete s;
+                     //type = *(new string(atr->Value()));
                      break;
             case 2 : break;
             default : double pr;

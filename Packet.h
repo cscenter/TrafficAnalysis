@@ -30,6 +30,10 @@ public:
 
     Packet();
 
+    Packet(const Packet& pack);
+
+    ~Packet() { delete payload; }
+
     bool is_broken;
 
     void Parse(const pcap_pkthdr *head, const u_char *packet);

@@ -54,6 +54,8 @@ Signature_analysis::Signature_analysis() {
             sign_type_list.push_back(traffic);
         }
     }
+
+    delete[] args;
     //delete main_config;
     //delete config;
 }
@@ -84,12 +86,15 @@ void Signature_analysis::print_sessions_list() {
     out.close();
 }
 
-void Signature_analysis::add_packet(const Packet* pack) {
+
+void Signature_analysis::add_packet(const Packet* p) {
+    Packet *pack = new Packet(*p);
     Session session(*pack);
     map<Session, Session_data>::iterator iter;
     iter = sessions_list.find(session);
     if (iter != sessions_list.end()) {
         if (sessions_list[session].has_solution()) {
+            delete pack;
             return;
         }
         sessions_list[session].to_upload(pack);
@@ -99,6 +104,7 @@ void Signature_analysis::add_packet(const Packet* pack) {
         iter = sessions_list.find(session);
         if (iter != sessions_list.end()) {
             if (sessions_list[session].has_solution()) {
+                delete pack;
                 return;
             }
             sessions_list[session].to_download(pack);
@@ -127,7 +133,24 @@ void Signature_analysis::checking_for_signatures(const Packet* pack, Session_dat
         }
     }
 }
-
+/*
+Signature_analysis::~Signature_analysis() {
+    map<Session, Session_data>::iterator iter;
+    iter = sessions_list.begin();
+     while(iter != sessions_list.end()) {
+        Session session = iter->first;
+        Session_data s_date = iter->second;
+        vector<const Packet*> upload = s_date.get_upload();
+        vector<const Packet*> download = s_date.get_download();
+        for ( int i = 0; i < download.size(); i++) {
+            delete download[i];
+        }
+        for ( int i = 0; i < upload.size(); i++) {
+            delete upload[i];
+        }
+    }
+    iter++;
+}*/
 /*void Session_data::print_payload(int length, const u_char *payload) const { // вывод полезной нагрузки пакетов
     int i;
     while(length > 0) {

@@ -76,6 +76,8 @@ public:
 
     Signature_analysis();
 
+    //~Signature_analysis();
+
     std::map<Session, Session_data>& get_map() { return sessions_list; } //&?
 
     void print_sessions_list();

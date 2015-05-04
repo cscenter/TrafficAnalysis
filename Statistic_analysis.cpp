@@ -10,6 +10,7 @@
 using namespace std;
 
 Statistic_analysis::Statistic_analysis() {
+    cout << "constructor" << endl;
     load_xml("xml/configurations.xml");
     processed_sessions_counter = 0;
     last_process_time = 0;
@@ -49,8 +50,11 @@ void Statistic_analysis::load_xml(string name) {
             config->get_next_param(type, data);
             vector<double> v(data, data + params_number);
             statistic_data.insert(pair<string, vector<double> >(type, v));
+            delete[] data;
         }
     }
+    delete[] args;
+    delete[] params;
 }
 
 
@@ -108,7 +112,7 @@ bool Statistic_analysis::fill_period_type(Packages& p) {
 }
 
 
- 			
+
 
 void Statistic_analysis::fill_if_not_equal(Packages& p) {
     if (p.downlink.size() > p.uplink.size()) p.uplink.resize(p.downlink.size());
@@ -136,13 +140,11 @@ bool Statistic_analysis::process_session(const Session& s, Packages& p) {
 
 
 void Statistic_analysis::write_decision(string decision) {
-    cout << "HEAR" << endl;
     ofstream out_up(result_filename, ios::app);
     out_up << pcap_filename << " " << decision << endl;
 }
 
 void Statistic_analysis::process_dead_sessions(int current_time) {
-    cout << " I WAS HEAR" << endl;
     auto it = pack_time.begin();
     while (it != pack_time.end()) {
         if (!it->second.is_alive(current_time, time_to_live)) {
@@ -183,14 +185,14 @@ void Statistic_analysis::add_second(vector<int>& v, Packages& p, int p_time, int
     v[v.size() - 1] += size;
 }
 
-void Statistic_analysis::add_packet(const Packet& p) {   //FILL MAP
-    int p_time = p.get_header().ts.tv_sec;
+void Statistic_analysis::add_packet(const Packet* p) {   //FILL MAP
+    int p_time = p->get_header().ts.tv_sec;
     if (p_time - last_process_time > process_interval && last_process_time != 0) {
         process_dead_sessions(p_time);
         last_process_time = p_time;
     }
-    int p_size = p.get_size_payload();
-    Session temp_ses(p);
+    int p_size = p->get_size_payload();
+    Session temp_ses(*p);
     bool is_reversed = false;
     if (temp_ses.ip_src.s_addr != host_ip) {
         is_reversed = true;
@@ -222,7 +224,7 @@ void Statistic_analysis::dead_session_inform(const Session & ses) const {
     cout << ses.port_src << " ";
     cout << ses.port_dst << " ";
     cout << "  IS DEAD" << endl << endl;
-    
+
 }
 
 

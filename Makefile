@@ -29,3 +29,5 @@ clean:
 	rm *.o main
 	sudo rm -rf result* 
 	sudo rm -rf *.txt
+	sudo rm -rf result* 
+	sudo rm -rf *.txt

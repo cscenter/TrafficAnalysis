@@ -83,7 +83,7 @@ public:
 
     ~Statistic_analysis();
 
-    void add_packet(const Packet& p);
+    void add_packet(const Packet* p);
 
     bool hosts_equal(Session const &s1, Session const &s2);
 };
