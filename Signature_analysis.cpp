@@ -34,31 +34,27 @@ void Session_data::set_session_solution(const string& solut, int priority, int n
 }
 
 Signature_analysis::Signature_analysis() {
-    //EL: не самый удобный способ работать с конфигом
-    string f_name("xml/configurations.xml");
-    static MainConfig c(f_name); // вызывается конструктор наследного класса, вызывается конструктор базового
+    Config* main_config = Config::get_config(); // вызывается конструктор наследного класса, вызывается конструктор базового
+    main_config->load_xml_file("xml/configurations.xml"); // подгружается xml файл
+    main_config->get_tag("sign_config");
 
-    Config *main_config = c.get_config(f_name); // инстанцируется класс синглтон
-    main_config->load_xml_file(); // подгружается xml файл
-    string *args = new string[3];
-    bool state = main_config->get_sign_config(args);
+    string f_name;
+    main_config->get_attribute_str("file_name", f_name);
+    main_config->load_xml_file(f_name);
 
-    main_config = c.get_config(args[0]);
-    main_config->load_xml_file();
-    //Signature_configurations config(args[0].c_str());
-    while (!main_config->is_ready()) {
-        string sig, type;
+    while (main_config->next_tag()) {
+        string sign, type;
         int priority, num_pack;
-        state = main_config->get_next_signature(sig, type, &priority, &num_pack);
-        if (state) {
-            Traffic traffic(sig, type, priority, num_pack);
+        //main_config->get_next_signature(sig, type, &priority, &num_pack);
+        bool status = main_config->get_attribute_str("sign", sign);
+        main_config->get_attribute_str("type", type);
+        main_config->get_attribute_int("priority", &priority);
+        main_config->get_attribute_int("num_pack", &num_pack);
+        if (status) {
+            Traffic traffic(sign, type, priority, num_pack);
             sign_type_list.push_back(traffic);
         }
     }
-
-    delete[] args;
-    //delete main_config;
-    //delete config;
 }
 
 void Signature_analysis::print_sessions_list() {
