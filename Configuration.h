@@ -12,37 +12,41 @@ private:
     bool in_process;
     TiXmlDocument document;
     TiXmlElement *current_element;
-protected:
-    Config(std::string f_name);
-    ~Config() { delete config;}
+    Config() {};
 public:
-    static Config* get_config(std::string f_name) { return new Config(f_name); }
+    static Config* get_config() {
+        if (config == 0) {
+            config = new Config();
+        }
+        return config;
+    }
 
-    bool load_xml_file();
+    ~Config() { delete config;}
 
-    bool get_sign_config(std::string *config_list);
+    bool load_xml_file(const std::string& f_name);
 
-    bool get_next_param(std::string& type, double *args);
+    bool next_tag();
 
-    bool get_next_signature(std::string& signature, std::string& type, int *priority, int *num_pack);
+    bool get_tag(const std::string& name);
 
-    bool is_ready() const { return !in_process; }
+    bool get_attribute_str(const std::string& atr_name, std::string& value);//, TiXmlElement* element);
+
+    bool get_attribute_int(const std::string& atr_name, int *value);
+
+
+
+
+    //bool get_sign_config(std::string *config_list);
+
+    //bool get_next_param(std::string& type, double *args);
+
+    //bool get_next_signature(std::string& signature, std::string& type, int *priority, int *num_pack);
+
+    //bool is_ready() const { return !in_process; }
 
     void write_stat_to_xml(const std::string& traffic_type, const std::string& pcap_filename,
                                                  const std::vector<double>& data);
-    bool get_stat_config(std::string *config_list, int * params);
+    //bool get_stat_config(std::string *config_list, int * params);
 };
-
-
-class MainConfig : public Config {
-public:
-    MainConfig(std::string f_name) : Config(f_name){
-        Config::get_config(f_name);
-    }
-
-    ~MainConfig() {};
-};
-
-
 
 #endif
