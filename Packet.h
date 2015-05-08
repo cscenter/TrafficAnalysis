@@ -36,7 +36,7 @@ public:
 
     bool is_broken;
 
-    void Parse(const pcap_pkthdr *head, const u_char *packet);
+    void parse(const pcap_pkthdr *head, const u_char *packet);
 
     int get_size_payload() const { return size_payload; };
     u_char* get_pload() const { return payload; };

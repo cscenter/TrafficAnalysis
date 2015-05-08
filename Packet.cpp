@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "Packet.h"
 using namespace std;
 
@@ -18,14 +19,18 @@ Packet::Packet(const Packet& pack) {
     size_udp = pack.size_udp;
 };
 
-void Packet::Parse(const struct pcap_pkthdr *head, const u_char *packet) {
+void Packet::parse(const struct pcap_pkthdr *head, const u_char *packet) {
     header = *head;
+    //int size_pack = sizeof(*pack);
+    //u_char *packet = new u_char[size_pack + 1];
+    //memcpy(packet, pack, size_pack + 1);
+
     ethernet = *(sniff_ethernet*)packet;
     ip = *(sniff_ip *)(packet + SIZE_ETHERNET);
     size_ip = (((ip).ip_vhl) & 0x0f)*4;
     if (size_ip < 20) {
         is_broken = true;
-        return; //s_pack;
+        return;
     }
     //EL minor можно повторяющийся код написать один раз, например,
     //вынести его в отдельную функцию
@@ -36,7 +41,6 @@ void Packet::Parse(const struct pcap_pkthdr *head, const u_char *packet) {
             size_tcp = (((tcp).th_offx2 & 0xf0) >> 4) * 4;
 
             if (size_tcp < 20) {
-                is_broken = true;
                 return;
             }
             size_payload = ntohs(ip.ip_len) - (size_ip + size_tcp);
