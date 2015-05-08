@@ -34,6 +34,8 @@ public:
     bool get_attribute_str(const std::string& atr_name, std::string& value);
 
     bool get_attribute_int(const std::string& atr_name, int *value);
+    
+    bool get_attribute_double(const std::string& atr_name, double *value);
 
     void write_stat_to_xml(const std::string& traffic_type, const std::string& pcap_filename,
                                                  const std::vector<double>& data);

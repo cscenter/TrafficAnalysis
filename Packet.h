@@ -32,7 +32,7 @@ public:
 
     Packet(const Packet& pack);
 
-    ~Packet() { delete payload; }
+    ~Packet() { delete[] payload; }
 
     bool is_broken;
 

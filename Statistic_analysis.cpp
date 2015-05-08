@@ -19,48 +19,45 @@ Statistic_analysis::Statistic_analysis() {
     }
 
 }
+
 void Statistic_analysis::load_xml(string name) {
-    const int int_settings_number = 5;
-    const int string_settings_number = 7;
-    const int params_number = 4;
-    static MainConfig c(name);
-    Config *main_config = c.get_config(name);
-    main_config->load_xml_file();
-    string *args = new string[string_settings_number];
-    //EL: vector
-    //EL: самоописывающийся код, а не args.
-    int * params = new int[int_settings_number];
-    bool state = main_config->get_stat_config(args, params);
-    dev_mode = (args[1] == "debug") ? MODE_DEBUG :MODE_WORKING;
-    pcap_filename = args[2];
-    result_filename = args[3];
-    work_mode = (args[4] == "learning") ? MODE_LEARNING : MODE_DEFINITION;
-    learning_type = args[5];
-    in_addr temp;
-    int t = inet_aton(args[6].c_str(), &temp);
-    host_ip = temp.s_addr;
-    state_period = params[0];
-    state_limit = params[1];
-    session_time_limit = params[2];
-    none_limit = (double) params[3] / 100;
-    config = c.get_config(args[0]);
-    config->load_xml_file();
+
+    main_config = Config::get_config(); // вызывается конструктор наследного класса, вызывается конструктор базового
+    main_config->load_xml_file("xml/configurations.xml"); // подгружается xml файл
+    main_config->get_tag("stat_config");
+    string f_name;
+    main_config->get_attribute_str("file_name", f_name);
+    string tmp;
+    main_config->get_attribute_str("mode", tmp);
+    dev_mode = (tmp == "debug") ? MODE_DEBUG : MODE_WORKING;
+    main_config->get_attribute_str("decision_file_name", result_filename);
+    main_config->get_attribute_str("pcap_file_name", pcap_filename);
+    main_config->get_attribute_str("work_mode", tmp);
+    work_mode = (tmp == "learning") ? MODE_LEARNING : MODE_DEFINITION;
+    main_config->get_attribute_str("pcap_mode", learning_type );
+    main_config->get_attribute_str("host_ip", tmp);
+    in_addr temp2;
+    int t = inet_aton(tmp.c_str(), &temp2);
+    host_ip = temp2.s_addr;
+    main_config->get_attribute_int("state_period", &state_period);
+    main_config->get_attribute_int("state_limit", &state_limit);
+    main_config->get_attribute_int("session_time_limit", &session_time_limit);
+    main_config->get_attribute_double("none_limit", &none_limit);
+    main_config->get_attribute_int("time_to_live", &time_to_live);
+    main_config->load_xml_file(f_name);
     if (work_mode == MODE_DEFINITION) {
-        while (!config->is_ready()) {
+         do {
+            vector<double> v(4);
             string type;
-            double *data = new double[params_number];
-            config->get_next_param(type, data);
-            vector<double> v(data, data + params_number);
+            main_config->get_attribute_str("type", type);
+            main_config->get_attribute_double("none", &v[0]);
+            main_config->get_attribute_double("upload", &v[1]);
+            main_config->get_attribute_double("download", &v[2]);
+            main_config->get_attribute_double("interactive", &v[3]);
             statistic_data.insert(pair<string, vector<double> >(type, v));
-            delete[] data;
-        }
+        } while (main_config->next_tag());
     }
-    delete[] args;
-    delete[] params;
 }
-
-
-
 
 bool Statistic_analysis::fill_state(Packages& p, const vector<int> & v, vector<bool>& state) {
 
@@ -129,7 +126,7 @@ bool Statistic_analysis::process_session(const Session& s, Packages& p) {
     if ((flag1 || flag2) && fill_period_type(p)
         && (p.downlink.size() >= session_time_limit && p.uplink.size() >= session_time_limit )) {
             if (dev_mode == MODE_DEBUG) write_session_to_file(s, p);
-            if (work_mode == MODE_LEARNING) config->write_stat_to_xml(learning_type, pcap_filename, p.type_percent);
+            if (work_mode == MODE_LEARNING) main_config->write_stat_to_xml(learning_type, pcap_filename, p.type_percent);
             if (work_mode == MODE_DEFINITION) {
                 string decision = get_nearest(p);
                 write_decision(decision);

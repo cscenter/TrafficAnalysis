@@ -78,6 +78,19 @@ bool Config::get_attribute_int(const std::string& name, int *value) {
     return false;
 }
 
+bool Config::get_attribute_double(const std::string& name, double *value) {
+    TiXmlAttribute *attr = current_element->FirstAttribute();
+    while (attr != NULL) {
+        if (strcmp(attr->Name(), name.c_str()) == 0) {
+            if (attr->QueryDoubleValue(value) == TIXML_SUCCESS) {
+                return true;
+            }
+        }
+        attr = attr->Next();
+    }
+    return false;
+}
+
 void Config::write_stat_to_xml(const string& traffic_type, const string& pcap_filename,
                                                  const vector<double>& data) {
 

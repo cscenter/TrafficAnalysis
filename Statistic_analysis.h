@@ -46,7 +46,7 @@ enum working_mode {MODE_LEARNING, MODE_DEFINITION};
 //EL: положением в класее методы и поля, которые используются только 
 //EL: в режиме debug
 class Statistic_analysis {
-    Config *config;
+    Config *main_config;
     int processed_sessions_counter;
     int process_interval;       //интервал обработки сессий (ищем мертвые и удаляем)
     std::string pcap_filename;  //имя файла, на котором учится программа
