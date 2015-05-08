@@ -2,6 +2,7 @@
 #include <new>
 #include <stdlib.h>
 #include <fstream>
+#include <tclap/CmdLine.h>
 
 
 #include "Net_sniffer.h"
@@ -21,13 +22,49 @@ using namespace std;
 int main(int argc, char **argv) {
     string filter_expr = "ip";
     Working_classes wc;
+    //Config* config = Config::get_config();
+    Net_sniffer *n_sniffer;
+    try {
+        TCLAP::CmdLine cmd("Command description message", ' ', "0.9");
+        TCLAP::ValueArg<std::string> mode_arg("m","mode","Mode will be used", false, "live", "string");
+        TCLAP::ValueArg<std::string> device_arg("d","device","Device will be cature and sniff or *.pcap file", false, "wlan0", "string");
+        cmd.add(mode_arg);
+        cmd.add(device_arg);
+        cmd.parse(argc, argv);
+        string mode = mode_arg.getValue();
+        string device = device_arg.getValue();
+
+        if ( mode == "offline") {
+            n_sniffer = new Net_sniffer(device.c_str(), filter_expr, false);
+        }
+        else {
+            n_sniffer = new Net_sniffer(device.c_str(), filter_expr, true);
+        }
+    }
+    catch (TCLAP::ArgException &e) {
+        cerr << "error: " << e.error() << " for arg " << e.argId() << endl;
+    }
+    try {
+        n_sniffer->start_sniff(&wc);
+    }
+    catch (Net_sniffer_exception e) {
+        cout << e.get_exception_reason() << endl;
+    }
+    delete n_sniffer;
+
+}
+
+
+
+/*
+
     if (argc == 2) {
         Net_sniffer *obj = new Net_sniffer(argv[1], filter_expr, true);
         try {
             obj->start_sniff(&wc);
         }
-        catch (Net_sniffer_exception *e) {
-            cout << e->get_exception_reason() << endl;
+        catch (Net_sniffer_exception e) {
+            cout << e.get_exception_reason() << endl;
         }
         delete obj;
     }
@@ -41,8 +78,8 @@ int main(int argc, char **argv) {
             try {
                 obj->start_sniff(&wc);
             }
-            catch (Net_sniffer_exception *e) {
-                cout << e->get_exception_reason() << endl;
+            catch (Net_sniffer_exception e) {
+                cout << e.get_exception_reason() << endl;
             }
             delete obj;
         }
@@ -56,12 +93,12 @@ int main(int argc, char **argv) {
                 try {
                     obj->start_sniff(&wc);
                 }
-                catch (Net_sniffer_exception *e) {
-                    cout << e->get_exception_reason() << endl;
+                catch (Net_sniffer_exception e) {
+                    cout << e.get_exception_reason() << endl;
                 }
                 delete obj;
             }
         }
     }
     return 0;
-};
+};*/
