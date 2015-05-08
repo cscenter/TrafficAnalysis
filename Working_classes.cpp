@@ -16,13 +16,5 @@ void Working_classes::sigfunc(int sig) {
 }
 
 Working_classes::Working_classes() {
-    sig_analysator = new Signature_analysis();
-    stat_analysator = new Statistic_analysis();
     signal(SIGINT,sigfunc);
 }
-
-/*Working_classes::Working_classes(Signature_configurations& config) {
-    sig_analysator = new Signature_analysis(config);
-    stat_analysator = new Statistic_analysis();
-    signal(SIGINT,sigfunc);
-}*/
