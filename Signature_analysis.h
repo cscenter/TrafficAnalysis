@@ -5,13 +5,8 @@
 #include <map>
 #include <regex>
 #include <vector>
-#include <pcap.h>
-#include <netinet/in.h>
-#include "Pack_headers_struct.h"
 #include "Packet.h"
 #include "Session.h"
-#include "Configuration.h"
-
 
 
 struct Traffic {
@@ -20,71 +15,59 @@ struct Traffic {
     int priority;
     int num_pack;
 
-    //EL: const string&
-    Traffic(std::string sign, std::string t, int p, int n) : signature(sign), type(t), priority(p), num_pack(n) {
-    }
+    Traffic(const std::string& sign, const std::string& t, int p, int n) : signature(sign), type(t), priority(p), num_pack(n) {}
 };
 
 
 class Session_data {
 private:
-    bool solution;
-    int solution_priority;
-    int solution_num_pack;
-    std::string session_solution;
-public:
+    bool solution = false;
+    int solution_priority = -1;
+    int solution_num_pack = 0;
+    std::string session_solution = "";
+    int last_packet_time = 0;
     std::vector<const Packet*> upload;
     std::vector<const Packet*> download;
 
-    Session_data();
+    void set_last_packet_time(const int& new_time_val);
+public:
 
     bool has_solution() const { return solution; }
-
     std::string get_session_solution() const { return session_solution; }
-
     void set_session_solution(const std::string& solution, int priority, int num_pack);
 
     void to_upload(const Packet* pack);
-
     void to_download(const Packet* pack);
 
-    std::vector<const Packet*>& get_upload() { return upload; }
-
+    std::vector<const Packet*>& get_upload() { return upload; } // почему не получается сделать метод константным?
     std::vector<const Packet*>& get_download() { return download; }
 
-    void print_payload(int length, const u_char *payload) const;
-
-    void clean_session_data();
+    int get_last_packet_time() const { return last_packet_time; }
 
 };
 
 
 class Signature_analysis {
-
-    std::string mode;
-    //EL: классы не должны знать про файлы конфига
-    std::string xml_file_name;
-
+private:
     std::map<Session, Session_data> sessions_list;
-
     std::vector<Traffic> sign_type_list;
+    std::ofstream out;
+    int last_activity_time = 0;
+    int sessions_lifetime;
+    int time_to_check;
 
     void checking_for_signatures(const Packet* pack, Session_data& ) const;
-
-    std::ofstream out;
-
+    void start_sessions_kill();
+    bool is_alive(const Session_data& s_data) const;
+    void free_session_packets(Session_data& s_data);
 public:
 
     Signature_analysis();
-
-    //~Signature_analysis();
-
-    std::map<Session, Session_data>& get_map() { return sessions_list; } //&?
+    ~Signature_analysis();
 
     void print_sessions_list();
-
     void add_packet(const Packet* pack);
-
+    //std::map<Session, Session_data>& get_map() { return sessions_list; } //&?
 };
 
 #endif
