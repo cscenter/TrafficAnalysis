@@ -1,5 +1,5 @@
-main: build/main.o build/Net_sniffer.o build/Statistic_analysis.o build/Packet.o build/Session.o build/Working_classes.o build/Signature_analysis.o build/Configuration.o build/tinystr.o build/tinyxml.o build/tinyxmlerror.o build/tinyxmlparser.o
-	g++ build/main.o  build/Configuration.o build/Statistic_analysis.o build/Packet.o build/Net_sniffer.o build/Session.o build/Working_classes.o build/Signature_analysis.o build/tiny*.o -lpcap -o build/main 
+main: build/ build/main.o build/Net_sniffer.o build/Statistic_analysis.o build/Packet.o build/Session.o build/Working_classes.o build/Signature_analysis.o build/Configuration.o build/tinystr.o build/tinyxml.o build/tinyxmlerror.o build/tinyxmlparser.o
+	g++ build/main.o  build/Configuration.o build/Statistic_analysis.o build/Packet.o build/Net_sniffer.o build/Session.o build/Working_classes.o build/Signature_analysis.o build/tiny*.o -lpcap -o main 
 
 build/main.o: src/main.cpp src/Net_sniffer.h src/Statistic_analysis.h src/Packet.h src/Signature_analysis.h
 	g++-4.9 -c src/main.cpp  -std=c++11 -o build/main.o
@@ -37,9 +37,9 @@ build/tinyxmlerror.o: lib/tinyxml/tinyxmlerror.cpp lib/tinyxml/tinyxml.h
 build/tinyxmlparser.o: lib/tinyxml/tinyxmlparser.cpp lib/tinyxml/tinyxml.h
 	g++ -c lib/tinyxml/tinyxmlparser.cpp -o build/tinyxmlparser.o  
 
+build/:
+	mkdir -p build/
+
 clean:
-	rm build/*o
-	sudo rm -rf build/result* 
-	sudo rm -rf build/*.txt
-	sudo rm -rf build/result* 
+	rm -rf build
 
