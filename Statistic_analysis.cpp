@@ -5,14 +5,21 @@
 #include <arpa/inet.h>
 #include <sys/stat.h>
 #include "Statistic_analysis.h"
+#include "../../../../usr/lib/gcc/x86_64-linux-gnu/4.8/include/float.h"
 
 
 using namespace std;
 
-Statistic_analysis::Statistic_analysis() {
-    cout << "constructor" << endl;
-    load_xml("xml/configurations.xml");
+Statistic_analysis::Statistic_analysis(const std::string& config_xml_name, const std::string& stage,
+                                       const std::string& working_mode, const std::string& learning_type,
+                                       const std::string& device, const std::string& result_filename)
+        :pcap_filename(device), learning_type(learning_type), result_filename(result_filename) {
+
+    work_mode = (working_mode == "learn") ? MODE_LEARNING : MODE_DEFINITION;
+    dev_mode = (stage == "debug") ? MODE_DEBUG : MODE_WORKING;
+    load_xml(config_xml_name);
     processed_sessions_counter = 0;
+    cout << device << endl;
     last_process_time = 0;
     if (dev_mode == MODE_DEBUG) {
         mkdir("result", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -20,21 +27,15 @@ Statistic_analysis::Statistic_analysis() {
 
 }
 
-void Statistic_analysis::load_xml(string name) {
+
+void Statistic_analysis::load_xml(string filename) {
 
     main_config = Config::get_config(); // вызывается конструктор наследного класса, вызывается конструктор базового
-    main_config->load_xml_file("xml/configurations.xml"); // подгружается xml файл
+    main_config->load_xml_file(filename); // подгружается xml файл
     main_config->get_tag("stat_config");
     string f_name;
     main_config->get_attribute_str("file_name", f_name);
     string tmp;
-    main_config->get_attribute_str("mode", tmp);
-    dev_mode = (tmp == "debug") ? MODE_DEBUG : MODE_WORKING;
-    main_config->get_attribute_str("decision_file_name", result_filename);
-    main_config->get_attribute_str("pcap_file_name", pcap_filename);
-    main_config->get_attribute_str("work_mode", tmp);
-    work_mode = (tmp == "learning") ? MODE_LEARNING : MODE_DEFINITION;
-    main_config->get_attribute_str("pcap_mode", learning_type );
     main_config->get_attribute_str("host_ip", tmp);
     in_addr temp2;
     int t = inet_aton(tmp.c_str(), &temp2);
@@ -80,6 +81,9 @@ bool Statistic_analysis::fill_state(Packages& p, const vector<int> & v, vector<b
 	return true;
 }
 
+
+
+
 bool Statistic_analysis::fill_period_type(Packages& p) {
     static int counter = 0;
     counter++;
@@ -111,8 +115,6 @@ bool Statistic_analysis::fill_period_type(Packages& p) {
 }
 
 
-
-
 void Statistic_analysis::fill_if_not_equal(Packages& p) {
     if (p.downlink.size() > p.uplink.size()) p.uplink.resize(p.downlink.size());
     else if (p.downlink.size() < p.uplink.size()) p.downlink.resize(p.uplink.size());
@@ -120,28 +122,39 @@ void Statistic_analysis::fill_if_not_equal(Packages& p) {
 
 
 bool Statistic_analysis::process_session(const Session& s, Packages& p) {
+
+
     fill_if_not_equal(p);
     bool flag1 = fill_state(p, p.uplink, p.up_state);
     bool flag2 = fill_state(p, p.downlink, p.down_state);
     if ((flag1 || flag2) && fill_period_type(p)
         && (p.downlink.size() >= session_time_limit && p.uplink.size() >= session_time_limit )) {
-            if (dev_mode == MODE_DEBUG) write_session_to_file(s, p);
-            if (work_mode == MODE_LEARNING) main_config->write_stat_to_xml(learning_type, pcap_filename, p.type_percent);
+            if (dev_mode == MODE_DEBUG) {
+                write_session_to_file(s, p);
+            }
+            if (work_mode == MODE_LEARNING) {
+                main_config->write_stat_to_xml(learning_type, pcap_filename, p.type_percent);
+            }
             if (work_mode == MODE_DEFINITION) {
                 string decision = get_nearest(p);
                 write_decision(decision);
+
+
+
             }
-            processed_sessions_counter++;
         }
 
     processed_sessions_counter++;
+
+
 }
 
-
 void Statistic_analysis::write_decision(string decision) {
+
     ofstream out_up(result_filename, ios::app);
     out_up << pcap_filename << " " << decision << endl;
 }
+
 
 void Statistic_analysis::process_dead_sessions(int current_time) {
     auto it = pack_time.begin();
@@ -277,7 +290,7 @@ Statistic_analysis::~Statistic_analysis() {
 }
 
 string Statistic_analysis::get_nearest(Packages& p) {
-    int min = INT_MAX;
+    double min = DBL_MAX;
     string min_name;
     for(auto it : statistic_data) {
         double d = 0;
@@ -296,7 +309,7 @@ void Statistic_analysis::write_session_to_file(const Session& first, const Packa
     string file_name = "result/ses" + to_string(processed_sessions_counter) + "_uplink.txt";
     ofstream out_up(file_name);
     /*out_up << first.ip_src.s_addr << endl;
-    out_up << " to " << first.ip_dst.s_addr << endl;
+    out_up << " to " << inet_ntoa(first.ip_dst) << endl;
     out_up << first.port_src <<  " " << first.port_dst << endl;
     switch(first.protocol) {
         case IPPROTO_TCP:
@@ -305,8 +318,8 @@ void Statistic_analysis::write_session_to_file(const Session& first, const Packa
         case IPPROTO_UDP:
             out_up << "UDP" << endl;
             break;
-    }
-    */
+    }*/
+
     for (int i = 0; i < second.uplink.size(); i++) {
         out_up << i << " " << second.uplink[i] << endl;
     }

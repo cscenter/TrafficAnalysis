@@ -21,31 +21,51 @@ using namespace std;
 
 int main(int argc, char **argv) {
     string filter_expr = "ip";
-    Working_classes wc;
     //Config* config = Config::get_config();
     Net_sniffer *n_sniffer;
     try {
         TCLAP::CmdLine cmd("Command description message", ' ', "0.9");
-        TCLAP::ValueArg<std::string> mode_arg("m","mode","Mode will be used", false, "live", "string");
-        TCLAP::ValueArg<std::string> device_arg("d","device","Device will be cature and sniff or *.pcap file", false, "wlan0", "string");
+        vector<string> allowed(2);
+        allowed[0] = "live";
+        allowed[1] = "offline";
+        TCLAP::ValuesConstraint<string> allowedVals( allowed );;
+        TCLAP::ValueArg<std::string> mode_arg("m","mode","Set mode", false, "live", &allowedVals);
+        TCLAP::ValueArg<std::string> device_arg("d","device","Set the device or *.pcap file", false, "wlan0", "string");
+        allowed[0] = "determine";
+        allowed[1] = "learn";
+        TCLAP::ValuesConstraint<string> allowedVals2( allowed );;
+        TCLAP::ValueArg<std::string> work_mode_arg("a","action","Set the action", false, "determine", &allowedVals2);
+        TCLAP::ValueArg<std::string> learning_type_arg("t","type","Set the learning type", false, "browsing", "string");
+        allowed[0] = "debug";
+        allowed[1] = "release";
+        TCLAP::ValuesConstraint<string> allowedVals3( allowed );;
+        TCLAP::ValueArg<std::string> dev_stage_arg("s","stage","Set the stage", false, "debug", &allowedVals3);
+        TCLAP::ValueArg<std::string> config_filename_arg("c","config_filename","Enter config filename",
+                                                     false, "xml/configurations.xml", "string");
+        TCLAP::ValueArg<std::string> stat_result_filename_arg("r","stat_result_filename","Enter stat_result_filename",
+                                                     false, "results.txt", "string");
         cmd.add(mode_arg);
         cmd.add(device_arg);
+        cmd.add(work_mode_arg);
+        cmd.add(dev_stage_arg);
+        cmd.add(learning_type_arg);
+        cmd.add(config_filename_arg);
+        cmd.add(stat_result_filename_arg);
         cmd.parse(argc, argv);
         string mode = mode_arg.getValue();
         string device = device_arg.getValue();
-
-        if ( mode == "offline") {
+        Working_classes wc(config_filename_arg.getValue(), dev_stage_arg.getValue(), work_mode_arg.getValue(),
+                           learning_type_arg.getValue(), device_arg.getValue(), stat_result_filename_arg.getValue() );
+        if (mode == "offline") {
             n_sniffer = new Net_sniffer(device.c_str(), filter_expr, false);
         }
         else {
             n_sniffer = new Net_sniffer(device.c_str(), filter_expr, true);
         }
+        n_sniffer->start_sniff(&wc);
     }
     catch (TCLAP::ArgException &e) {
         cerr << "error: " << e.error() << " for arg " << e.argId() << endl;
-    }
-    try {
-        n_sniffer->start_sniff(&wc);
     }
     catch (Net_sniffer_exception e) {
         cout << e.get_exception_reason() << endl;
