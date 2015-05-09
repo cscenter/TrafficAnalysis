@@ -2,8 +2,8 @@
 #define CONFIG_H
 
 #include <string>
-#include "tinyxml/tinyxml.h"
-#include "tinyxml/tinystr.h"
+#include "../lib/tinyxml/tinyxml.h"
+#include "../lib/tinyxml/tinystr.h"
 #include <vector>
 
 
