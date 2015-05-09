@@ -12,8 +12,8 @@ using namespace std;
 
 Statistic_analysis::Statistic_analysis(const std::string& config_xml_name, const std::string& stage,
                                        const std::string& working_mode, const std::string& learning_type,
-                                       const std::string& device, const std::string& result_filename)
-        :pcap_filename(device), learning_type(learning_type), result_filename(result_filename) {
+                                       const std::string& device)
+        :pcap_filename(device), learning_type(learning_type) {
 
     work_mode = (working_mode == "learn") ? MODE_LEARNING : MODE_DEFINITION;
     dev_mode = (stage == "debug") ? MODE_DEBUG : MODE_WORKING;
@@ -22,7 +22,8 @@ Statistic_analysis::Statistic_analysis(const std::string& config_xml_name, const
     cout << device << endl;
     last_process_time = 0;
     if (dev_mode == MODE_DEBUG) {
-        mkdir("result", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    	result_filename = "build/results.txt";
+        mkdir("build/result", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     }
 
 }
@@ -130,6 +131,7 @@ bool Statistic_analysis::process_session(const Session& s, Packages& p) {
     if ((flag1 || flag2) && fill_period_type(p)
         && (p.downlink.size() >= session_time_limit && p.uplink.size() >= session_time_limit )) {
             if (dev_mode == MODE_DEBUG) {
+            	cout << " I AM HEAR \n" << endl;
                 write_session_to_file(s, p);
             }
             if (work_mode == MODE_LEARNING) {
@@ -306,7 +308,7 @@ string Statistic_analysis::get_nearest(Packages& p) {
 }
 
 void Statistic_analysis::write_session_to_file(const Session& first, const Packages& second) {
-    string file_name = "result/ses" + to_string(processed_sessions_counter) + "_uplink.txt";
+    string file_name = "build/result/ses" + to_string(processed_sessions_counter) + "_uplink.txt";
     ofstream out_up(file_name);
     /*out_up << first.ip_src.s_addr << endl;
     out_up << " to " << inet_ntoa(first.ip_dst) << endl;

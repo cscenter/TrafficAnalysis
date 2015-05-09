@@ -84,8 +84,7 @@ class Statistic_analysis {
 
 public:
     //Statistic_analysis();
-    Statistic_analysis(const std::string& config_xml, const std::string& stage, const std::string& working_mode, const std::string& learning_type,
-                                           const std::string& device, const std::string& result_filename);
+    Statistic_analysis(const std::string& config_xml, const std::string& stage, const std::string& working_mode, const std::string& learning_type, const std::string& device);
 
     ~Statistic_analysis();
 

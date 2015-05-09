@@ -42,20 +42,17 @@ int main(int argc, char **argv) {
         TCLAP::ValueArg<std::string> dev_stage_arg("s","stage","Set the stage", false, "debug", &allowedVals3);
         TCLAP::ValueArg<std::string> config_filename_arg("c","config_filename","Enter config filename",
                                                      false, "xml/configurations.xml", "string");
-        TCLAP::ValueArg<std::string> stat_result_filename_arg("r","stat_result_filename","Enter stat_result_filename",
-                                                     false, "results.txt", "string");
         cmd.add(mode_arg);
         cmd.add(device_arg);
         cmd.add(work_mode_arg);
         cmd.add(dev_stage_arg);
         cmd.add(learning_type_arg);
         cmd.add(config_filename_arg);
-        cmd.add(stat_result_filename_arg);
         cmd.parse(argc, argv);
         string mode = mode_arg.getValue();
         string device = device_arg.getValue();
         Working_classes wc(config_filename_arg.getValue(), dev_stage_arg.getValue(), work_mode_arg.getValue(),
-                           learning_type_arg.getValue(), device_arg.getValue(), stat_result_filename_arg.getValue() );
+                           learning_type_arg.getValue(), device_arg.getValue());
         if (mode == "offline") {
             n_sniffer = new Net_sniffer(device.c_str(), filter_expr, false);
         }
