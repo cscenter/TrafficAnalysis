@@ -1,8 +1,0 @@
-<?xml version="1.0" ?>
-<signatures_list>
-	<signature sign="HTTP/1.1" type="BROWSING" />
-	<signature sign="Content-Type: text" type="TEXT" />
-	<signature sign="Content-Type: application" type="SCRIPT" />
-	<signature sign="Content-Type: video" type="VIDEO" />
-	<signature sign="Content-Type: image" type="IMAGE" />
-<signatures_list>
