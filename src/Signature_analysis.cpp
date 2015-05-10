@@ -98,7 +98,6 @@ void Signature_analysis::add_packet(const Packet* pack) {
         out.open("session_with_solution_pload.txt", ios::app);
         Session_info* s_inf = Session_info::get_session_info();
         s_inf->set_sign_solution(session, sessions_list[session].get_session_solution());
-        s_inf->set_stat_solution(session, "none");
         //session.print_session();
         //cout << sessions_list[session].get_session_solution() << endl << endl;
         out << pack->get_pload() << endl << "/*********************/" << endl;
@@ -120,6 +119,9 @@ void Signature_analysis::start_sessions_kill() {
     auto iter = sessions_list.begin();
     while (iter != sessions_list.end()) {
         if (!is_alive(iter->second)) {
+            Session_info* s_inf = Session_info::get_session_info();
+            s_inf->set_sign_solution(iter->first, "none");
+
             free_session_packets(iter->second);
             sessions_list.erase(iter++);
         }
