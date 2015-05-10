@@ -96,8 +96,11 @@ void Signature_analysis::add_packet(const Packet* pack) {
 
     if (sessions_list[session].has_solution()) {
         out.open("session_with_solution_pload.txt", ios::app);
-        session.print_session();
-        cout << sessions_list[session].get_session_solution() << endl << endl;
+        Session_info* s_inf = Session_info::get_session_info();
+        s_inf->set_sign_solution(session, sessions_list[session].get_session_solution());
+        s_inf->set_stat_solution(session, "none");
+        //session.print_session();
+        //cout << sessions_list[session].get_session_solution() << endl << endl;
         out << pack->get_pload() << endl << "/*********************/" << endl;
         out.close();
     }
@@ -159,7 +162,6 @@ void Signature_analysis::print_sessions_list() {
         Session session = iter->first;
         Session_data s_date = iter->second;
         if (!s_date.has_solution()) {
-            //session.print_session();
             vector<const Packet*> upload = s_date.get_upload();
             vector<const Packet*> download = s_date.get_download();
 

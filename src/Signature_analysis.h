@@ -2,11 +2,11 @@
 #define SIGNATURE_ANALISATOR_H
 
 #include <fstream>
-#include <map>
+//#include <map>
 #include <regex>
 #include <vector>
 #include "Packet.h"
-#include "Session.h"
+#include "Session_info.h"
 
 
 struct Traffic {
@@ -17,7 +17,6 @@ struct Traffic {
 
     Traffic(const std::string& sign, const std::string& t, int p, int n) : signature(sign), type(t), priority(p), num_pack(n) {}
 };
-
 
 class Session_data {
 private:
