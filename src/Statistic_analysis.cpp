@@ -124,8 +124,7 @@ void Statistic_analysis::fill_if_not_equal(Packages& p) {
 
 
 bool Statistic_analysis::process_session(const Session& s, Packages& p) {
-
-
+	Session_info* s_inf = Session_info::get_session_info();
     fill_if_not_equal(p);
     bool flag1 = fill_state(p, p.uplink, p.up_state);
     bool flag2 = fill_state(p, p.downlink, p.down_state);
@@ -140,10 +139,10 @@ bool Statistic_analysis::process_session(const Session& s, Packages& p) {
             }
             if (work_mode == MODE_DEFINITION) {
                 string decision = get_nearest(p);
-                Session_info* s_inf = Session_info::get_session_info();
+               
         		s_inf->set_stat_solution(s, decision);
             }
-        } s_inf->set_stat_solution(s, "none");
+        } else s_inf->set_stat_solution(s, "none");
        
 
     processed_sessions_counter++;
