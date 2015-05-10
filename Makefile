@@ -1,5 +1,5 @@
-main: build/ build/main.o build/Net_sniffer.o build/Statistic_analysis.o build/Packet.o build/Session.o build/Working_classes.o build/Signature_analysis.o build/Configuration.o build/tinystr.o build/tinyxml.o build/tinyxmlerror.o build/tinyxmlparser.o
-	g++ build/main.o  build/Configuration.o build/Statistic_analysis.o build/Packet.o build/Net_sniffer.o build/Session.o build/Working_classes.o build/Signature_analysis.o build/tiny*.o -lpcap -o main 
+main: build/ build/main.o build/Net_sniffer.o build/Statistic_analysis.o build/Packet.o build/Session.o build/Working_classes.o build/Signature_analysis.o build/Session_info.o build/Configuration.o build/tinystr.o build/tinyxml.o build/tinyxmlerror.o build/tinyxmlparser.o
+	g++ build/main.o  build/Configuration.o build/Statistic_analysis.o build/Packet.o build/Net_sniffer.o build/Session.o build/Working_classes.o build/Signature_analysis.o build/Session_info.o build/tiny*.o -lpcap -o main 
 
 build/main.o: src/main.cpp src/Net_sniffer.h src/Statistic_analysis.h src/Packet.h src/Signature_analysis.h
 	g++-4.9 -c src/main.cpp  -std=c++11 -o build/main.o
@@ -21,6 +21,9 @@ build/Session.o: src/Session.cpp src/Session.h
 
 build/Configuration.o: src/Configuration.cpp src/Configuration.h
 	g++ -c -std=c++11 src/Configuration.cpp -o build/Configuration.o
+
+build/Session_info.o: src/Session_info.cpp src/Session_info.h
+	g++ -c -std=c++11 src/Session_info.cpp -o build/Session_info.o
 
 build/Working_classes.o: src/Working_classes.cpp src/Working_classes.h
 	g++ -c src/Working_classes.cpp -std=c++11 -o build/Working_classes.o
