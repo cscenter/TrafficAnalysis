@@ -39,26 +39,23 @@ void Session_data::set_session_solution(const string& solut, int priority, int n
 Signature_analysis::Signature_analysis() {
     Config* config = Config::get_config(); // инстанцируется синглтон
     config->load_xml_file("xml/configurations.xml"); // подгружается xml файл с основными настройками
-    config->get_tag("sign_config");
 
-    string f_name;
+    config->get_tag("sign_config");
+    string f_name, host;
     config->get_attribute_str("file_name", f_name);
+    in_addr ip;
+    config->get_attribute_str("host_ip", host); // получаем адрес хоста
+    inet_aton(host.c_str(), &ip);
+    host_ip = ip.s_addr;
     config->get_attribute_int("session_lifetime", &sessions_lifetime);
     config->get_attribute_int("time_to_check", &time_to_check);
 
     config->load_xml_file(f_name); // загрузка файла со списком регулярных выражений
     do {
-        string sign, type, host;
-        in_addr ip;
+        string sign, type;
         int priority, num_pack;
-
         config->get_attribute_str("sign", sign);
         config->get_attribute_str("type", type);
-
-        config->get_attribute_str("host_ip", host); // получаем адрес хоста
-        inet_aton(host.c_str(), &ip);
-        host_ip = ip.s_addr;
-
         config->get_attribute_int("priority", &priority);
         config->get_attribute_int("num_pack", &num_pack);
         Traffic traffic(sign, type, priority, num_pack);
