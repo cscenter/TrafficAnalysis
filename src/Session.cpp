@@ -38,7 +38,7 @@ Session::Session(const Packet& p){
     }
 }
 
-void Session::print_session(){
+void Session::print_session() const {
     cout << "From ip: " << inet_ntoa(ip_src) << "  ";
     cout << "To ip: " << inet_ntoa(ip_dst) << "     ";
     cout << "From port: " << ntohs(port_src) << "    ";

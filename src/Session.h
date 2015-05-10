@@ -18,7 +18,7 @@ struct Session {
     Session(const Packet& p);
     Session();
     bool is_alive() const;
-    void print_session();
+    void print_session() const;
     bool operator < (const Session & b) const;
     void session_reverse();
 };
