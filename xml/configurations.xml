@@ -5,5 +5,5 @@
 	             state_period = "3" state_limit = "128" session_time_limit="20" none_limit="0.8"
                  time_to_live = "1000"   />
      
-	<sign_config  file_name="xml/sign.xml" session_lifetime="15" time_to_check="30" />
+	<sign_config  file_name="xml/sign.xml" session_lifetime="3" time_to_check="10" />
 </configuration>

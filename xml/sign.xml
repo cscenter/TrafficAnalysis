@@ -1,14 +1,17 @@
 <?xml version="1.0" ?>
 <signatures_list>
-	<signature sign="HTTP/1.1" type="BROWSING" priority="0" num_pack="3"/>
+	<HTTP sign="HTTP/1.1" type="BROWSING" priority="0" num_pack="6"/>
 
-	<signature sign="Content-Type: text" type="BROWSING" priority="0" num_pack="3"/>
+	<text sign="Content-Type: text" type="BROWSING" priority="0" num_pack="6"/>
 
-	<signature sign="Content-Type: application" type="BROWSING" priority="0" num_pack="3"/>
+	<application sign="Content-Type: application" type="BROWSING" priority="0" num_pack="6"/>
 
-	<signature sign="Content-Type: video" type="VIDEO" priority="3" num_pack="1"/>	
+	<signature sign="Content-Type: image" type="IMAGE" priority="1" num_pack="3"/>
+
+	<video sign="Content-Type: video" type="VIDEO" priority="2" num_pack="1"/>	
 	
-	<signature sign="youtube.com" type="YOUTUBE!!!" priority="3" num_pack="1"/>	
+
+		
 
 	<signature sign="ˆssh-[12]\.[0-9]" type="SSH" priority="2" num_pack="1"/>
 
@@ -16,8 +19,6 @@
 	
 	<signature sign="^.F..-........./x02 ./x02 ..........@......." type="SKYPE" priority="2" num_pack="1"/>
 	<signature sign="^.F.-./x02 ./x02 .@." type="SKYPE" priority="2" num_pack="3"/>
-
-	<signature sign="Content-Type: image" type="IMAGE" priority="2" num_pack="1"/>
 
 
 	<signature sign="^(\x13bittorrent protocol|azver\x01$|get /scrape\?info_hash)" type="BitTorrent" priority="4" num_pack="1"/>
