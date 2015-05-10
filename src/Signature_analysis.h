@@ -51,6 +51,7 @@ private:
     std::map<Session, Session_data> sessions_list;
     std::vector<Traffic> sign_type_list;
     std::ofstream out;
+    int host_ip;
     int last_activity_time = 0;
     int sessions_lifetime;
     int time_to_check;

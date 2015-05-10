@@ -1,4 +1,5 @@
 #include <iostream>
+#include <arpa/inet.h>
 #include "Configuration.h"
 #include "Session.h"
 #include "Signature_analysis.h"
@@ -47,10 +48,17 @@ Signature_analysis::Signature_analysis() {
 
     config->load_xml_file(f_name); // загрузка файла со списком регулярных выражений
     do {
-        string sign, type;
+        string sign, type, host;
+        in_addr ip;
         int priority, num_pack;
+
         config->get_attribute_str("sign", sign);
         config->get_attribute_str("type", type);
+
+        config->get_attribute_str("host_ip", host); // получаем адрес хоста
+        inet_aton(host.c_str(), &ip);
+        host_ip = ip.s_addr;
+
         config->get_attribute_int("priority", &priority);
         config->get_attribute_int("num_pack", &num_pack);
         Traffic traffic(sign, type, priority, num_pack);
@@ -66,6 +74,10 @@ void Signature_analysis::add_packet(const Packet* pack) {
     }
 
     Session session(*pack); // получение сессии (upload), соответствующей пришедшему пакету
+
+    if (session.ip_src.s_addr != host_ip) {
+        session.session_reverse();
+    }
 
     auto iter = sessions_list.find(session);
     if (iter != sessions_list.end()) {
