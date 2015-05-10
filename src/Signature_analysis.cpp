@@ -70,7 +70,7 @@ void Signature_analysis::add_packet(const Packet* pack) {
         last_activity_time = pack->get_header().ts.tv_sec;
     }
 
-    Session session(*pack); // получение сессии (upload), соответствующей пришедшему пакету
+    Session session(*pack); // получение сессии, соответствующей пришедшему пакету
 
     if (session.ip_src.s_addr != host_ip) {
         session.session_reverse();
@@ -104,13 +104,11 @@ void Signature_analysis::add_packet(const Packet* pack) {
 
 
     if (sessions_list[session].has_solution()) {
-        out.open("session_with_solution_pload.txt", ios::app);
+        //out.open("session_with_solution_pload.txt", ios::app);
         Session_info* s_inf = Session_info::get_session_info();
         s_inf->set_sign_solution(session, sessions_list[session].get_session_solution());
-        //session.print_session();
-        //cout << sessions_list[session].get_session_solution() << endl << endl;
-        out << pack->get_pload() << endl << "/*********************/" << endl;
-        out.close();
+        //out << pack->get_pload() << endl << "/*********************/" << endl;
+        //out.close();
     }
 
 }
@@ -130,7 +128,6 @@ void Signature_analysis::start_sessions_kill() {
         if (!is_alive(iter->second)) {
             Session_info* s_inf = Session_info::get_session_info();
             s_inf->set_sign_solution(iter->first, "none");
-
             free_session_packets(iter->second);
             sessions_list.erase(iter++);
         }
@@ -160,6 +157,8 @@ void Signature_analysis::free_session_packets(Session_data& s_data) {
 Signature_analysis::~Signature_analysis() {
     auto iter = sessions_list.begin();
      while(iter != sessions_list.end()) {
+        Session_info* s_inf = Session_info::get_session_info();
+        s_inf->set_sign_solution(iter->first, "none");
         free_session_packets(iter->second);
         iter++;
     }
