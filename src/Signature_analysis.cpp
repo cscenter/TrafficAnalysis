@@ -155,10 +155,13 @@ void Signature_analysis::free_session_packets(Session_data& s_data) {
 }
 
 Signature_analysis::~Signature_analysis() {
+    Session_info* s_inf = Session_info::get_session_info();
     auto iter = sessions_list.begin();
      while(iter != sessions_list.end()) {
-        Session_info* s_inf = Session_info::get_session_info();
-        s_inf->set_sign_solution(iter->first, "none");
+        Session_data s_data = iter->second;
+        if (!s_data.has_solution()) {
+            s_inf->set_sign_solution(iter->first, "none");
+        }
         free_session_packets(iter->second);
         iter++;
     }
