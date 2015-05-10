@@ -142,11 +142,9 @@ bool Statistic_analysis::process_session(const Session& s, Packages& p) {
                 string decision = get_nearest(p);
                 Session_info* s_inf = Session_info::get_session_info();
         		s_inf->set_stat_solution(s, decision);
-
-
-
             }
-        }
+        } s_inf->set_stat_solution(s, "none");
+       
 
     processed_sessions_counter++;
 
