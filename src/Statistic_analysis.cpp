@@ -5,7 +5,8 @@
 #include <arpa/inet.h>
 #include <sys/stat.h>
 #include "Statistic_analysis.h"
-#include "../../../../usr/lib/gcc/x86_64-linux-gnu/4.8/include/float.h"
+#include <float.h>
+#include "Session_info.h"
 
 
 using namespace std;
@@ -139,7 +140,8 @@ bool Statistic_analysis::process_session(const Session& s, Packages& p) {
             }
             if (work_mode == MODE_DEFINITION) {
                 string decision = get_nearest(p);
-                write_decision(decision);
+                Session_info* s_inf = Session_info::get_session_info();
+        		s_inf->set_stat_solution(s, decision);
 
 
 
