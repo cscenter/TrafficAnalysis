@@ -24,8 +24,10 @@ void Solution::print_solution() const {
 Session_info* Session_info::s_info = 0;
 
 void Session_info::display_solution(const Session& session, const Solution& solution) const {
-    session.print_session();
-    solution.print_solution();
+ 	if ( !(solution.sign_solution == "none" && solution.stat_solution == "none") ) {
+    	session.print_session();
+    	solution.print_solution();
+	}
 }
 
 void Session_info::set_sign_solution(const Session& session, const std::string& solution) {

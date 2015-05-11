@@ -66,7 +66,7 @@ void Net_sniffer::got_packet(u_char *args, const struct pcap_pkthdr *header, con
     Packet *pack = new Packet();
     pack->parse(header, packet);
     if (!pack->is_broken) {
-        //wc->get_statistic_analysys().add_packet(pack);
+        wc->get_statistic_analysys().add_packet(pack);
         wc->get_signature_analysis().add_packet(pack);
     }
 }
