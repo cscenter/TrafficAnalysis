@@ -53,8 +53,10 @@ void Net_sniffer::start_sniff(Working_classes* p) {
         throw Net_sniffer_exception("Couldn't install filter");
     }
 
-    cout << "Device " << dev << endl;
-    cout << "Filter " << filter_exp.c_str() << endl;
+    if (is_live) {
+        cout << "Device " << dev << endl;
+        cout << "Filter " << filter_exp.c_str() << endl;
+    }
 
     pcap_loop(handle, 0, got_packet, (u_char *)(p));
     pcap_freecode(&fp);

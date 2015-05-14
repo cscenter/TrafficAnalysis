@@ -128,7 +128,7 @@ void Signature_analysis::add_packet(const Packet* pack) {
         else {
             Session_info* s_inf = Session_info::get_session_info();
             s_inf->set_sign_solution(session, sessions_list[session].get_session_solution());
-            s_inf->set_stat_solution(session, "none");
+            //s_inf->set_stat_solution(session, "none");
         }
     }
 
@@ -214,38 +214,4 @@ void Signature_analysis::print_sessions_list() {
     }
     out.close();
 }
-
-/*void Session_data::print_payload(int length, const u_char *payload) const { // вывод полезной нагрузки пакетов
-    int i;
-    while(length > 0) {
-        int T = 100; // длина выводимой строки
-        if (length < T) {
-            for (i = 0; i < length; i++) {
-                if (isprint(*payload)) {
-                    cout << *payload;
-                }
-                else {
-                    cout << "." ;
-                }
-                payload++;
-                length--;
-            }
-            T = 0;
-            cout << endl;
-        }
-        length -= T;
-        while (T > 0) {
-            if (isprint(*payload)) {
-                cout << *payload;
-            }
-            else {
-                cout << "." ;
-            }
-            payload++;
-            T--;
-        }
-        cout << endl;
-    }
-    cout << endl;
-}*/
 

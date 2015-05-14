@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
         allowed[0] = "debug";
         allowed[1] = "release";
         TCLAP::ValuesConstraint<string> allowedVals3( allowed );;
-        TCLAP::ValueArg<std::string> dev_stage_arg("s","stage","Set the stage", false, "debug", &allowedVals3);
+        TCLAP::ValueArg<std::string> dev_stage_arg("s","stage","Set the stage", false, "release", &allowedVals3);
         TCLAP::ValueArg<std::string> config_filename_arg("c","config_filename","Enter config filename",
                                                      false, "xml/configurations.xml", "string");
         cmd.add(mode_arg);
@@ -70,52 +70,3 @@ int main(int argc, char **argv) {
     delete n_sniffer;
 
 }
-
-
-
-/*
-
-    if (argc == 2) {
-        Net_sniffer *obj = new Net_sniffer(argv[1], filter_expr, true);
-        try {
-            obj->start_sniff(&wc);
-        }
-        catch (Net_sniffer_exception e) {
-            cout << e.get_exception_reason() << endl;
-        }
-        delete obj;
-    }
-    else {
-        if (argc == 3) {
-            bool mode = true;
-            if (strcmp(argv[2], "offline") == 0) {
-                mode = false;
-            }
-            Net_sniffer *obj = new Net_sniffer(argv[1], filter_expr, mode);
-            try {
-                obj->start_sniff(&wc);
-            }
-            catch (Net_sniffer_exception e) {
-                cout << e.get_exception_reason() << endl;
-            }
-            delete obj;
-        }
-        else {
-            if (argc > 3) {
-                cout << "error: unrecognized command-line options\n" << endl;
-                return 0;
-            }
-            else {
-                Net_sniffer *obj = new Net_sniffer();
-                try {
-                    obj->start_sniff(&wc);
-                }
-                catch (Net_sniffer_exception e) {
-                    cout << e.get_exception_reason() << endl;
-                }
-                delete obj;
-            }
-        }
-    }
-    return 0;
-};*/
