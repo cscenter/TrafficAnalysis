@@ -56,18 +56,25 @@ private:
     int sessions_lifetime;
     int time_to_check;
 
+    bool debug = false;
+    std::string pcap_fname;
+    std::ofstream dbg_out;
+
+
+    void load_configurations(const std::string& config_file_name);
+    void load_signatures_list(const std::string& f_name);
     void checking_for_signatures(const Packet* pack, Session_data& ) const;
     void start_sessions_kill();
     bool is_alive(const Session_data& s_data) const;
     void free_session_packets(Session_data& s_data);
 public:
 
-    Signature_analysis();
+    Signature_analysis(const std::string& config_xml_name, const std::string& mode, const std::string& pcap_file);
     ~Signature_analysis();
 
     void print_sessions_list();
     void add_packet(const Packet* pack);
-    //std::map<Session, Session_data>& get_map() { return sessions_list; } //&?
+
 };
 
 #endif

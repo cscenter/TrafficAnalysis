@@ -36,20 +36,35 @@ void Session_data::set_session_solution(const string& solut, int priority, int n
     }
 }
 
-Signature_analysis::Signature_analysis() {
+Signature_analysis::Signature_analysis(const std::string& config_xml_name, const std::string& mode, const std::string& pcap_file)
+        :pcap_fname(pcap_file) {
+
+    if (mode == "debug") {
+        debug = true;
+    }
+    load_configurations(config_xml_name);
+}
+
+void Signature_analysis::load_configurations(const string& config_file_name) {
     Config* config = Config::get_config(); // инстанцируется синглтон
-    config->load_xml_file("xml/configurations.xml"); // подгружается xml файл с основными настройками
+    config->load_xml_file(config_file_name); // подгружается xml файл с основными настройками
+
+    string f_name, host;
+    in_addr ip;
 
     config->get_tag("sign_config");
-    string f_name, host;
     config->get_attribute_str("file_name", f_name);
-    in_addr ip;
     config->get_attribute_str("host_ip", host); // получаем адрес хоста
     inet_aton(host.c_str(), &ip);
     host_ip = ip.s_addr;
     config->get_attribute_int("session_lifetime", &sessions_lifetime);
     config->get_attribute_int("time_to_check", &time_to_check);
 
+    load_signatures_list(f_name);
+}
+
+void Signature_analysis::load_signatures_list(const string& f_name) {
+    Config* config = Config::get_config(); // инстанцируется синглтон
     config->load_xml_file(f_name); // загрузка файла со списком регулярных выражений
     do {
         string sign, type;
@@ -63,6 +78,7 @@ Signature_analysis::Signature_analysis() {
     }
     while (config->next_tag());
 }
+
 
 void Signature_analysis::add_packet(const Packet* pack) {
     if (pack->get_header().ts.tv_sec - last_activity_time >= time_to_check && last_activity_time) { // проверяю сколько прошло времени
@@ -104,11 +120,16 @@ void Signature_analysis::add_packet(const Packet* pack) {
 
 
     if (sessions_list[session].has_solution()) {
-        //out.open("session_with_solution_pload.txt", ios::app);
-        Session_info* s_inf = Session_info::get_session_info();
-        s_inf->set_sign_solution(session, sessions_list[session].get_session_solution());
-        //out << pack->get_pload() << endl << "/*********************/" << endl;
-        //out.close();
+        if (debug) {
+            dbg_out.open("sig_results.txt", ios::app);
+            dbg_out << sessions_list[session].get_session_solution() << endl;
+            dbg_out.close();
+        }
+        else {
+            Session_info* s_inf = Session_info::get_session_info();
+            s_inf->set_sign_solution(session, sessions_list[session].get_session_solution());
+            s_inf->set_stat_solution(session, "none");
+        }
     }
 
 }
@@ -127,7 +148,9 @@ void Signature_analysis::start_sessions_kill() {
     while (iter != sessions_list.end()) {
         if (!is_alive(iter->second)) {
             Session_info* s_inf = Session_info::get_session_info();
-            s_inf->set_sign_solution(iter->first, "none");
+            if (!debug) {
+                s_inf->set_sign_solution(iter->first, "none");
+            }
             free_session_packets(iter->second);
             sessions_list.erase(iter++);
         }
@@ -159,7 +182,7 @@ Signature_analysis::~Signature_analysis() {
     auto iter = sessions_list.begin();
      while(iter != sessions_list.end()) {
         Session_data s_data = iter->second;
-        if (!s_data.has_solution()) {
+        if (!s_data.has_solution() && !debug) {
             s_inf->set_sign_solution(iter->first, "none");
         }
         free_session_packets(iter->second);
