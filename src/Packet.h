@@ -3,7 +3,7 @@
 
 #include <pcap.h>
 #include <string.h>
-//
+#include <iostream>
 #include <netinet/in.h>
 
 #include "Pack_headers_struct.h"
@@ -32,12 +32,15 @@ public:
 
     Packet(const Packet& pack);
 
-    ~Packet() { delete[] payload; }
+    ~Packet() { if (payload != nullptr) {
+    	delete[] payload;
+			} }
 
     bool is_broken;
 
     void parse(const pcap_pkthdr *head, const u_char *packet);
-
+	
+	void init_payload() { payload = nullptr; }
     int get_size_payload() const { return size_payload; };
     u_char* get_pload() const { return payload; };
     pcap_pkthdr get_header() const;

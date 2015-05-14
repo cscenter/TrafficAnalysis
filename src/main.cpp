@@ -68,5 +68,6 @@ int main(int argc, char **argv) {
         cout << e.get_exception_reason() << endl;
     }
     delete n_sniffer;
+    cout << "Ok" << endl;
 
 }

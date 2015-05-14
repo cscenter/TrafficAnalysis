@@ -3,6 +3,7 @@
 using namespace std;
 
 Packet::Packet() {
+
 };
 
 Packet::Packet(const Packet& pack) {
